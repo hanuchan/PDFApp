@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/store_background"
+    android:tileMode="repeat">
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+         >
+
+        <ImageView
+            android:id="@+id/magazine_store_banner_left"
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            android:scaleType="fitXY"
+            android:visibility="gone" >
+        </ImageView>
+
+
+        <GridView
+            android:id="@+id/magazine_store_grid_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:columnWidth="@dimen/issue_cell_size"
+            android:horizontalSpacing="@dimen/issue_cell_horizontal_spacing"
+            android:numColumns="auto_fit"
+            android:stretchMode="columnWidth"
+            android:verticalSpacing="@dimen/issue_cell_vertical_spacing"
+            android:listSelector="@drawable/store_grid_view_selector" >
+        </GridView>
+
+        <ImageView
+            android:id="@+id/magazine_store_banner_right"
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            android:visibility="gone" >
+        </ImageView>
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/magazine_store_banner_bottom"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:visibility="gone" >
+    </ImageView>
+
+</LinearLayout>

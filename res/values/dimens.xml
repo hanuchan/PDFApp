@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="issue_cell_size">100dp</dimen>
+    <dimen name="issue_cell_horizontal_spacing">5dp</dimen>
+    <dimen name="issue_cell_vertical_spacing">2dp</dimen>
+    <dimen name="issue_image_width">100dp</dimen>
+    <dimen name="issue_image_height">140dp</dimen>
+    <dimen name="issue_cell_text_title_size">20sp</dimen>
+    <dimen name="issue_cell_action_and_progress_bar_bottom_margin">0dp</dimen>
+    <dimen name="issue_cell_price_text_size">16dp</dimen>
+    <dimen name="issue_preview_descripition_text_size">16sp</dimen>
+    <dimen name="store_preview_fragment_size">50dp</dimen>
+    <dimen name="page_preview_size">50dp</dimen>
+
+    <dimen name="preview_image_width">80dp</dimen>
+    <dimen name="preview_image_height">90dp</dimen>
+ 
+    <dimen name="issue_cell_spacing">5dp</dimen>
+</resources>

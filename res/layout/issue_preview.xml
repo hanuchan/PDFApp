@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/issue_preview_bg_color"
+    android:orientation="horizontal" >
+
+    <ImageView
+        android:id="@+id/issue_preview_cover_image_view"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_weight="2"
+        android:scaleType="centerInside"
+        android:src="@drawable/cover_placeholder" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="3"
+        android:orientation="vertical" >
+
+        <ScrollView
+            android:id="@+id/scrollView1"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_margin="10dp"
+            android:layout_weight="1" >
+
+            <TextView
+                android:id="@+id/issue_preview_description_text_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis a nibh at erat rhoncus elementum quis sit amet dui. Donec facilisis tempus egestas. Vestibulum euismod ligula id neque hendrerit vitae fermentum neque lobortis. Vivamus malesuada turpis eu tellus bibendum tristique volutpat quam eleifend. Sed dictum tempor congue. Duis ultrices, orci ac malesuada pharetra, leo tellus facilisis dui, vel dignissim sem eros nec massa. Sed varius nulla pellentesque orci dictum vehicula. Pellentesque iaculis dictum tellus et rutrum. Curabitur elit arcu, sollicitudin sed tempus sed, pretium eu ipsum. Nunc tristique luctus risus, eu pharetra velit posuere in. Cras gravida ullamcorper lorem sit amet mattis. Nulla aliquet mollis elit, vel malesuada urna lobortis at. Donec quis leo vitae velit lacinia elementum. Quisque velit enim, gravida sed blandit rhoncus, adipiscing ac massa. Nunc at ipsum neque, id molestie dolor. Cras auctor ipsum et justo malesuada et porta urna aliquam.
+
+Nam iaculis bibendum turpis, sit amet consequat lacus mollis eu. Nam lobortis vulputate viverra. Quisque ac gravida diam. Proin ut justo eget orci iaculis dictum. Suspendisse ultricies enim vitae augue pretium in dignissim quam consectetur. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Duis quis urna non risus hendrerit hendrerit. Etiam vel tortor augue. Praesent tristique cursus lorem vitae lobortis. Nulla mollis ultricies diam eu imperdiet. Nunc et feugiat nunc. Donec pellentesque libero non lacus malesuada dapibus. Cras molestie porttitor magna, et accumsan nulla gravida in. Quisque nec dui non neque laoreet rhoncus posuere sit amet velit. Proin a risus risus. Maecenas sed sem velit.
+
+Etiam et enim sed est luctus porttitor. Nunc tristique, urna id accumsan posuere, tortor sem gravida ligula, et faucibus turpis nunc vitae erat. Duis eu magna orci, sed posuere tortor. Proin porta iaculis libero eu ultrices. Nulla gravida facilisis auctor. Nam in metus ut leo dapibus suscipit. Integer eu odio et dolor vestibulum volutpat nec nec neque. Donec velit velit, hendrerit eu gravida id, eleifend eu tortor.
+
+Cras nec libero ipsum. Sed blandit pulvinar auctor. Nunc volutpat, eros sed viverra cursus, magna orci commodo sapien, sit amet auctor tellus velit non lectus. Ut sed nisi nisi. Phasellus vitae lectus non eros vehicula faucibus eu et enim. Etiam adipiscing luctus facilisis. Duis sit amet mi nec mauris fringilla pharetra."
+                android:textSize="@dimen/issue_preview_descripition_text_size" />
+        </ScrollView>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:paddingTop="5dp" >
+
+            <TextView
+                android:id="@+id/issue_preview_price_and_action_text_view"
+                style="@style/LayerStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_marginLeft="15dp"
+                android:background="@drawable/option_unpressed"
+                android:text="Buy / 1,00 €"
+                android:textSize="@dimen/issue_preview_options_text_size"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/issue_preview_delete_text_view"
+                style="@style/LayerStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_marginRight="15dp"
+                android:background="@drawable/option_red_unpressed"
+                android:text="Delete"
+                android:textColor="@color/issue_preview_options_text_color"
+                android:textSize="@dimen/issue_preview_options_text_size" />
+        </RelativeLayout>
+    </LinearLayout>
+
+</LinearLayout>

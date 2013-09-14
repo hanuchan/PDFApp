@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Magmanager Library</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="menu_settings">Definições</string>
+    <string name="data_manager_label">Data manager</string>
+    <string name="issue_title_example">Exemplo</string>
+    <string name="issue_queued">Em fila...</string>
+    <string name="issue_is_unzipping">Extraíndo...</string>
+    <string name="refreshing">Autalizando dados</string>
+    <string name="issue_owned">Ler</string>
+    
+    <!-- store -->
+    
+    <string name="store_no_books_available">Não existem livros novos na loja, verifique mais tarde</string>
+    
+
+    <!-- prices -->
+
+    <string name="price_free">Grátis</string>
+    <string name="price_loading">Carregando</string>
+    <string name="price_unavailable">Indisponível</string>
+    <string name="price_bought">Comprado</string>
+
+    <!-- in app billing problems -->
+
+    <string name="in_app_v3_problem">In App purchases are currently unavailable, make sure you have an google account logged in and try again please</string>
+    <string name="purchase_unknown_error">There was an unknow error while trying to buy the book, try again later. If the problem persists, contact the developers</string>
+
+    <!-- purchases -->
+
+    <string name="purchase_thank_you">Livro comprado!</string>
+    <string name="issue_price_still_loading">O preço do livro ainda está a ser carregado, espere por favor...</string>
+    <string name="issue_price_unavailable">O preço do livro está indisponível, se o problema persistir contacte os developers</string>
+
+    <!-- remote loading problems -->
+
+    <string name="issue_remote_load_internet_problem">Não existe ligação à internet, ligue-a e tente novamente</string>
+    <string name="issue_remote_load_server_problem">O Servidor remoto está com problemas, tente outra vez mais tarde.</string>
+    <string name="issue_remote_load_unknow_problem">There was an unidentifiable problem connecting to the server, please try again later</string>
+    <string name="problem">Problema</string>
+    
+    <!-- dialogs -->
+    <string name="alert_dialog_ok">Ok</string>
+    <string name="alert_dialog_cancel">Cancelar</string>
+    <string name="alert_dialog_delete_issues_text">Deseja mesmo apagar o livro?</string>
+
+    <!-- deletion -->
+    <string name="issue_delete_success">Livro removido!</string>
+    <string name="issue_delete_failure">Ocorreu um erro ao apagar o livro!</string>
+    <string name="book_is_being_deleted">Removendo o livro</string>
+    <string name="delete">Apagar</string>
+    <string name="issue_cannot_be_deleted_not_ready">Este livro não pode ser apagado</string>
+    
+    <!-- common actions -->
+    
+    <string name="buy">Comprar</string>
+    <string name="read">Ler</string>
+    <string name="download">Descarregar</string>
+    <string name="edit">Editar</string>
+    <string name="cancel">Cancelar</string>
+    
+    <!-- samsung in app purchase -->
+    
+
+    <string name="null_string"></string>
+    <string name="item_type">Item Type : </string>
+    <string name="item_list_is_empty">Item list is empty</string>
+    <string name="items_inbox_list_is_empty">Items inbox list is empty</string>
+    <string name="load_item_list">Load Item List</string>
+    <string name="load_items_inbox_list">Load Items Inbox List</string>
+    <string name="purchase_one_item">Purchase One Item</string>
+    <string name="item_list">Item List</string>
+    <string name="items_inbox_list">Items Inbox List</string>
+    <string name="in_app_purchase">Compra In-app</string>
+    <string name="msg_success_initialize_iap">SamsungAccount authentication and in-app billing initialization was successful.</string>
+    <string name="msg_iap_upgrade_is_requred">É necessária uma atualização ao In-App Purchase.</string>
+    <string name="msg_failed_to_initialize_iap">A inicialização da compra in-app falhou.</string>
+    <string name="msg_failed_to_load_list_of_product">O Carregamento da lista de produtos falhou</string>
+    <string name="msg_failed_to_load_list_of_purchase">O Carregamento da lista das suas compras falhou</string>
+    <string name="msg_iap_service_bind_failed">In-app Purchase Service Bind failed.</string>
+    <string name="dlg_title_payment_error">Erro de pagamento</string>
+    <string name="msg_payment_was_not_processed_successfully">O Pagamento falhou.</string>
+    <string name="dlg_title_payment_success">Payment success</string>
+    <string name="dlg_msg_payment_success">O pagamento foi completado!</string>
+    <string name="dlg_title_payment_cancelled">O pagamento foi cancelado</string>
+    <string name="dlg_msg_payment_cancelled">O pagamento foi cancelado.</string>
+    <string name="dlg_title_samsungaccount_authentication">Autenticação SamsungAccount</string>
+    <string name="dlg_title_error">Erro</string>
+    <string name="msg_authentication_has_been_cancelled">SamsungAccount authentication has been cancelled</string>
+    <string name="waiting_ing">Esperando a autenticação da samsung...</string>
+    <string name="invalid_iap_package">IAP Application installed in your device is not valid!!</string>
+    <string name="invalid_activity_params">Please check IAP setting information.</string>
+    <string name="msg_invalid_purchase">O pagamento não é válido!!</string>
+    <string name="msg_iap_is_not_installed">IAP não está instalado. Instalar?</string>
+
+</resources>

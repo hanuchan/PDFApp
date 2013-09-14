@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:gravity="center_horizontal"
+    android:orientation="vertical" >
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" >
+
+        <ImageView
+            android:id="@+id/issue_cover"
+            android:layout_width="@dimen/issue_image_width"
+            android:layout_height="@dimen/issue_image_height"
+            android:background="@android:color/transparent"
+            android:scaleType="centerInside" />
+
+        <TextView
+            android:id="@+id/issue_special_status_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_alignRight="@+id/issue_cover"
+            android:layout_alignLeft="@+id/issue_cover"
+            android:gravity="center_horizontal"
+            android:text="@string/issue_queued"
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/issue_cell_special_status_text_size"
+            android:visibility="gone"
+            android:background="@drawable/issue_special_status_background" />
+        <ProgressBar
+                android:id="@+id/issue_cell_unzip_progress"
+                style="?android:attr/progressBarStyleLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@id/issue_cover"
+                android:layout_alignLeft="@id/issue_cover"
+                android:layout_alignRight="@id/issue_cover"
+                android:layout_alignTop="@id/issue_cover"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp" />
+        
+
+        <LinearLayout
+            android:id="@+id/issue_actions_and_progress_bar_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/issue_cover"
+            android:layout_alignLeft="@+id/issue_cover"
+            android:layout_alignRight="@+id/issue_cover"
+            android:layout_marginBottom="@dimen/issue_cell_action_and_progress_bar_bottom_margin"
+            android:orientation="vertical" >
+
+            <ImageView
+                android:id="@+id/issue_action_image_view"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/issue_cell_action_height"
+                android:scaleType="fitCenter"
+                android:src="@drawable/issue_download" />
+
+            <ProgressBar
+                android:id="@+id/issue_progress_bar"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:layout_marginLeft="6dp"
+                android:layout_marginRight="6dp"
+                android:visibility="visible" />
+        </LinearLayout>
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical" >
+
+        <TextView
+            android:id="@+id/issue_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:gravity="center_horizontal"
+            android:shadowColor="#44000000"
+            android:shadowDx="1"
+            android:shadowDy="1"
+            android:shadowRadius="1"
+            android:singleLine="true"
+            android:text="@string/issue_title_example"
+            android:textColor="@color/issue_title_text_color"
+            android:textSize="@dimen/issue_cell_text_title_size" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/issue_price_text_view"
+        style="@style/LayerStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/option_selector"
+        android:text="1,00 €"
+        android:textColor="@color/issue_cell_price_text_view_text_color"
+        android:textSize="@dimen/issue_cell_price_text_size" />
+
+</LinearLayout>

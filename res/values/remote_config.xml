@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="magazine_id">24</string>
+    <string name="json_version">2</string>
+    <string name="content_username">2bf618e3</string>
+    <string name="content_password">xQ8EXKJDZTHxUVf</string>
+    <string name="iapp_system">0</string> <!-- InApp system: 0-google, 1-samsung -->
+    
+    <!-- Samsung in app purchasing -->
+    <string name="samsung_iapp_item_group_id">null</string>
+    
+</resources>
