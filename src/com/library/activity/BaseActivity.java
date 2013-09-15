@@ -19,8 +19,16 @@ import android.util.Log;
 import com.appgeneration.magmanager.library.R;
 import com.artifex.mupdf.domain.StorageUtils;
 import com.google.analytics.tracking.android.EasyTracker;
-
-
+import org.acra.ReportField;
+import org.acra.ReportingInteractionMode;
+import org.acra.annotation.ReportsCrashes;
+@ReportsCrashes(formKey = "",
+mailTo = "hanumana5@gmail.com",
+customReportContent = { ReportField.APP_VERSION_CODE, ReportField.APP_VERSION_NAME,
+        ReportField.ANDROID_VERSION,
+        ReportField.PHONE_MODEL, ReportField.CUSTOM_DATA, ReportField.STACK_TRACE, ReportField.LOGCAT },
+mode = ReportingInteractionMode.TOAST,
+resToastText = R.string.crash_toast_text)
 
 public class BaseActivity extends Activity  {
 	private static final String TAG = "BaseActivity";

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="server_url">http://download.librelio.com/downloads/</string>
+    <string name="crash_toast_text">Application crashed. Please send bug report by email.</string>
 	<string name="asset_downloading">Downloading…</string>
 	<string name="loading">Loading...</string>
-	   <string name="connection_failed">Connection failed!</string>
-<string name="dismiss">Dismiss</string>
+	<string name="connection_failed">Connection failed!</string>
+	<string name="dismiss">Dismiss</string>
     <string name="no_space_on_device">Not enough space in your internal storage</string>
     <string name="ok">OK</string>
     <string name="server_error">Bad response from server.</string>

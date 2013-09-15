@@ -378,9 +378,16 @@ public boolean isJustScale = false;
 					// current inertial scroll in operation then animate
 					// the view onto screen if necessary
 					Log.d(TAG, "SLIDE");
-					if( MuPDFActivity.useEffectPage && mScale > 1.0f)
+					if( !MuPDFActivity.useEffectPage)
 					{
 						slideViewOntoScreen(v);
+					}
+					else
+					{
+						if( mScale > 1.0f)
+						{
+							slideViewOntoScreen(v);
+						}
 					}
 						
 				}
@@ -420,7 +427,7 @@ public boolean isJustScale = false;
 				// cv.getRight() may be out of date with the current scale
 				// so add left to the measured width for the correct position
 				if (cv.getLeft() + cv.getMeasuredWidth() + cvOffset.x + GAP/2 + mXScroll < getWidth()/2 && mCurrent + 1 < mAdapter.getCount()) {
-					if( MuPDFActivity.useEffectPage && mScale > 1.0f)
+					if( !MuPDFActivity.useEffectPage )
 					{
 						postUnsettle(cv);
 						// post to invoke test for end of animation
@@ -430,10 +437,23 @@ public boolean isJustScale = false;
 						mCurrent++;
 						onMoveToChild(cv, mCurrent);
 					}
+					else
+					{
+						if( mScale > 1.0f)
+						{
+							postUnsettle(cv);
+							// post to invoke test for end of animation
+							// where we must set hq area for the new current view
+							post(this);
+		
+							mCurrent++;
+							onMoveToChild(cv, mCurrent);
+						}
+					}
 				}
 
 				if (cv.getLeft() - cvOffset.x - GAP/2 + mXScroll >= getWidth()/2 && mCurrent > 0) {
-					if( MuPDFActivity.useEffectPage && mScale > 1.0f)
+				/*	if( MuPDFActivity.useEffectPage && mScale > 1.0f)
 					{
 						postUnsettle(cv);
 						// post to invoke test for end of animation
@@ -442,6 +462,30 @@ public boolean isJustScale = false;
 	
 						mCurrent--;
 						onMoveToChild(cv, mCurrent);
+					}*/
+					if( !MuPDFActivity.useEffectPage)
+					{
+						postUnsettle(cv);
+						// post to invoke test for end of animation
+						// where we must set hq area for the new current view
+						post(this);
+	
+						mCurrent--;
+						onMoveToChild(cv, mCurrent);
+					}
+					else
+					{
+						if( mScale > 1.0f)
+						{
+							postUnsettle(cv);
+							// post to invoke test for end of animation
+							// where we must set hq area for the new current view
+							post(this);
+		
+							mCurrent--;
+							onMoveToChild(cv, mCurrent);
+						}
+						
 					}
 				}
 			}

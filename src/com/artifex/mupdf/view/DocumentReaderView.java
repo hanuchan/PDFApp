@@ -39,6 +39,7 @@ public abstract class DocumentReaderView extends ReaderView {
 			SparseArray<LinkInfoExternal[]> pLinkOfDocument) {
 		super(context, pLinkOfDocument);
 		s_Instant = this;
+		Log.i("DocumentReaderView", "DocumentReaderView");
 	}
 	
 	@Override
@@ -143,6 +144,12 @@ public boolean onHitLinkActived( MotionEvent e)
 		{
 			if( mScale == 1.0f)
 			{
+				if( MuPDFActivity.mCurlView!= null)
+				{
+					Log.i("touch ", " anim : "+ MuPDFActivity.mCurlView.isInAnimated());
+					if( MuPDFActivity.mCurlView.isInAnimated())
+						return false;
+				}
 				switch ( event.getActionMasked())
 				{
 					case MotionEvent.ACTION_DOWN:
@@ -167,11 +174,11 @@ public boolean onHitLinkActived( MotionEvent e)
 					//	Log.d("curl : "+ MuPDFActivity.mCurlView.getVisibility()," doc: "+ getVisibility());
 						//MuPDFActivity.mCurlView.onTouchZoomUp(event);
 						if(MuPDFActivity.mCurlView.mState == MuPDFActivity.mCurlView.k_EffectState)
-				//		{
+						{
 							MuPDFActivity.mCurlView.onTouchEffectUp(event);
-				//		}
 						MuPDFActivity.mCurlView.mState = MuPDFActivity.mCurlView.k_DummySate;
-						
+						return false;
+						}
 					break;
 					case MotionEvent.ACTION_POINTER_UP:
 					//	Log("MotionEvent.ACTION_POINTER_UP");

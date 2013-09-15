@@ -122,7 +122,7 @@ public abstract class PageView extends ViewGroup {
 	private static final int HIGHLIGHT_COLOR = 0x805555FF;
 	private static final int LINK_COLOR = 0x80FFCC88;
 	private static final int BACKGROUND_COLOR = 0xFFFFFFFF;
-	private static final int PROGRESS_DIALOG_DELAY = 10;
+	private static final int PROGRESS_DIALOG_DELAY = 50;
 	private final Context   mContext;
 	protected     int       mPageNumber;
 	private       Point     mParentSize;
@@ -378,16 +378,35 @@ public abstract class PageView extends ViewGroup {
 						}
 						else // one pages
 						{
-							
-							if ( mSearchBoxes != null) 
+							if( MuPDFActivity.searchAllPages)
 							{
-								paint.setColor(HIGHLIGHT_COLOR);
-								for (RectF rect : mSearchBoxes)
+								if ( MuPDFActivity.searchAllPageList!= null) 
 								{
-									canvas.drawRect(rect.left*scale, rect.top*scale,
-											        rect.right*scale, rect.bottom*scale,
-											        paint);
-									
+									if( MuPDFActivity.searchAllPageList[mPageNumber]!= null)
+									{
+										paint.setColor(HIGHLIGHT_COLOR);
+										for (RectF rect : MuPDFActivity.searchAllPageList[mPageNumber].searchBoxes)
+										{
+											canvas.drawRect(rect.left*scale, rect.top*scale,
+													        rect.right*scale, rect.bottom*scale,
+													        paint);
+											
+										}
+									}
+								}
+							}
+							else
+							{
+								if ( mSearchBoxes != null) 
+								{
+									paint.setColor(HIGHLIGHT_COLOR);
+									for (RectF rect : mSearchBoxes)
+									{
+										canvas.drawRect(rect.left*scale, rect.top*scale,
+												        rect.right*scale, rect.bottom*scale,
+												        paint);
+										
+									}
 								}
 							}
 						}

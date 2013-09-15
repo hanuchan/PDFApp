@@ -18,7 +18,6 @@ package com.pdf.effect;
 
 
 import com.artifex.mupdf.view.DocumentReaderView;
-import com.google.analytics.tracking.android.Log;
 import com.library.activity.MuPDFActivity;
 
 import android.content.Context;
@@ -29,6 +28,7 @@ import android.os.Bundle;
 import android.os.Message;
 import android.util.AttributeSet;
 import android.util.FloatMath;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -165,6 +165,7 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 	{
 		return mAnimate;
 	}
+	int countFrame = 0;
 	@Override
 	public void onDrawFrame() {
 	
@@ -174,12 +175,21 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 			System.gc();
 			return;
 		}
+		Log.i(DocumentReaderView.s_Instant.getVisibility()+" draw frame : "+ System.currentTimeMillis(),"EFFECT GC ------------start:"+mAnimationStartTime);
 		setVisibility(VISIBLE);
 
 		long currentTime = System.currentTimeMillis();
+		if( countFrame == 0 && (currentTime >= mAnimationStartTime + mAnimationDurationTime))
+		{
+			mAnimationStartTime = currentTime-50;
+			Log.i("reset time anim", " ....");
+			countFrame++;
+		}
+
 		// If animation is done.
-		if (currentTime >= mAnimationStartTime + mAnimationDurationTime) {
-	
+		if (currentTime >= mAnimationStartTime + mAnimationDurationTime) 
+		//if( endAnimaiton )
+	    {
 			if (mAnimationTargetEvent == SET_CURL_TO_RIGHT) {
 				// Switch curled page to right.
 				CurlMesh right = mPageCurl;
@@ -215,7 +225,7 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 			mCurlState = CURL_NONE;
 			mAnimate = false;
 			requestRender();
-			
+			countFrame = 0;
 			//bigant add
 			Message msgObj = MuPDFActivity.handler.obtainMessage();
             Bundle b = new Bundle();
@@ -230,14 +240,24 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 			mPointerPos.mPos.set(mAnimationSource);
 			float t = 1f - ((float) (currentTime - mAnimationStartTime) / mAnimationDurationTime);
 			t = 1f - (t * t * t * (3 - 2 * t));
+			
 			mPointerPos.mPos.x += (mAnimationTarget.x - mAnimationSource.x) * t;
 			mPointerPos.mPos.y += (mAnimationTarget.y - mAnimationSource.y) * t;
-			updateCurlPos(mPointerPos);
+			
+			Log.i("mPointerPos.mPos:x:"+mPointerPos.mPos.x+" ;R left:"+ leftRect.left, "right rect: l: "+rightRect.left+" ;w :"+rightRect.right);
+			
+			
+			updateCurlPos(mPointerPos);	
+			
+			
+			countFrame++;
+			
 		}
 	}
 
 	@Override
 	public void onPageSizeChanged(int width, int height) {
+		//Log.d("onPageSizeChanged: w:"+width+" ; h: "+ height+ ";mPageBitmapWidth:"+mPageBitmapWidth+";mPageBitmapHeight:"+mPageBitmapHeight);
 		if( mPageBitmapHeight != height || mPageBitmapWidth != width) //update page when have changed
 		{
 			mPageBitmapWidth = width;
@@ -278,9 +298,13 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 	private PointF mPointDown = new PointF();
 	private float mPressure = -1;
 	private static float k_delta = 30;
+	long downTime = 0, uptime = 0;
+	PointF downPoint, upPoint;
 	public boolean onTouchEffectDown(MotionEvent me){
 		mPointDown.set(me.getX(), me.getY());
 		mPressure = me.getPressure();
+		downTime = System.currentTimeMillis();
+		downPoint = new PointF(me.getX(), me.getY());
 		return true;
 	}
 
@@ -379,6 +403,14 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 	}
 
 	public boolean onTouchEffectUp(MotionEvent me){
+		System.gc();
+		uptime = System.currentTimeMillis();
+		upPoint = new PointF(me.getX(), me.getY());
+//Log("down x: "+downPoint.x+"; y: "+downPoint.y+"; up: "+upPoint.x+"; y:"+upPoint.y);
+		long time = uptime - downTime;
+		double road = Math.sqrt((downPoint.x - upPoint.x)*(downPoint.x - upPoint.x)+ (downPoint.y - upPoint.y)*(downPoint.y - upPoint.y));
+		//float v = road/ time;
+		
 		if (mCurlState == CURL_LEFT || mCurlState == CURL_RIGHT) {
 			// Animation source is the point from where animation starts.
 			// Also it's handled in a way we actually simulate touch events
@@ -387,12 +419,37 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 			// result (which is easier done by altering curl position and/or
 			// direction directly), this is done in a hope it made code a
 			// bit more readable and easier to maintain.
-			mAnimationSource.set(mPointerPos.mPos);
+		/*	if( road > mPageBitmapWidth/3 && time < 500)
+			{
+				PointF mid =new PointF( (downPoint.x+upPoint.x)/2, (downPoint.y+upPoint.y)/2);
+				
+				mRenderer.translate(mid);
+				mAnimationSource.set(mid);
+			}
+			else*/
+				mAnimationSource.set(mPointerPos.mPos);
 			mAnimationStartTime = System.currentTimeMillis();
 			rightRect = mRenderer.getPageRect(CurlRenderer.PAGE_RIGHT);
 			leftRect = mRenderer.getPageRect(CurlRenderer.PAGE_LEFT);
 			// Given the explanation, here we decide whether to simulate
 			// drag to left or right end.
+			/*if( downPoint.x > upPoint.x) // right to left
+			{
+				mAnimationTarget.set(mDragStartPos);
+				if (mCurlState == CURL_RIGHT || mViewMode == SHOW_TWO_PAGES) {
+					mAnimationTarget.x = leftRect.left;
+				} else {
+					mAnimationTarget.x = rightRect.left;
+				}
+				mAnimationTargetEvent = SET_CURL_TO_LEFT;
+			}
+			else //left to right
+			{
+				mAnimationTarget.set(mDragStartPos);
+				mAnimationTarget.x = mRenderer
+						.getPageRect(CurlRenderer.PAGE_RIGHT).right;
+				mAnimationTargetEvent = SET_CURL_TO_RIGHT;
+			}*/
 			if ((mViewMode == SHOW_ONE_PAGE && mPointerPos.mPos.x > (rightRect.left + rightRect.right) / 2)
 					|| mViewMode == SHOW_TWO_PAGES
 					&& mPointerPos.mPos.x > rightRect.left) {
@@ -411,8 +468,15 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 				}
 				mAnimationTargetEvent = SET_CURL_TO_LEFT;
 			}
+			
 			mAnimate = true;
+			
+			Log.i("mAnimationTarget : x:"+mAnimationTarget.x +";y :"+ mAnimationTarget.y,"mAnimationSource: x:"+mAnimationSource.x+" ; y:"+mAnimationSource.y );
 			requestRender();
+			float t = 1f - ((float) (System.currentTimeMillis()+20 - mAnimationStartTime) / mAnimationDurationTime);
+			t = 1f - (t * t * t * (3 - 2 * t));
+			
+			Log.d("end effect up : " +t, " time :" + System.currentTimeMillis());
 		}
 		return false;
 	}
@@ -1060,11 +1124,12 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 	 * Updates bitmaps for page meshes.
 	 */
 	private void updatePages() {
+		Log.i("update pages: "+ MuPDFActivity.core,"curl: "+ MuPDFActivity.mCurlView);
 		if (mPageProvider == null || mPageBitmapWidth <= 0
-				|| mPageBitmapHeight <= 0) {
+				|| mPageBitmapHeight <= 0 || MuPDFActivity.core == null || MuPDFActivity.mCurlView == null) {
 			return;
 		}
-Log.i("updatePages");
+//Log.i("updatePages");
 		// Remove meshes from renderer.
 		mRenderer.removeCurlMesh(mPageLeft);
 		mRenderer.removeCurlMesh(mPageRight);
@@ -1156,6 +1221,20 @@ Log.i("updatePages");
 		 */
 		public void onSizeChanged(int width, int height);
 	}
+	
+	public void clearData()
+	{
+	//	mRenderer.removeCurlMesh(mPageLeft);
+		//mRenderer.removeCurlMesh(mPageRight);
+		//mRenderer.removeCurlMesh(mPageCurl);
+		mPageLeft.resetTexture();
+	//	mPageLeft =null;
+		mPageCurl.resetTexture();
+	//	mPageCurl = null;
+		mPageRight.resetTexture();
+	//	mPageRight = null;
+	//	mRenderer = null;
+	}
 float mScaleFactor = 1.0f;
 	private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
 	    @Override
@@ -1163,11 +1242,9 @@ float mScaleFactor = 1.0f;
 	        mScaleFactor *= detector.getScaleFactor();
 	        
 	        // Don't let the object get too small or too large.
-	       // Math.min(Math.max(mScale * detector.getScaleFactor(), MIN_SCALE), MAX_SCALE);
 	        mScaleFactor = Math.min( Math.max(mScaleFactor, 1.0f),5.0f);
 	         DocumentReaderView.s_Instant.updateViewZoom(detector);
-	       // s_Dx = mScrollPoint.x*mScalePhone/MuPDFActivity.PHONE_WIDTH/2;
-	      //  s_Dy = mScrollPoint.y*mScalePhone/MuPDFActivity.PHONE_WIDTH/2;
+
 	        invalidate();
 	        return true;
 	    }

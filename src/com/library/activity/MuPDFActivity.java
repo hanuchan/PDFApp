@@ -403,10 +403,8 @@ public class MuPDFActivity extends BaseActivity{
 				//mCurlView.setCurrentIndex(docView.getDisplayedViewIndex());
 				
 				mCurlView.setVisibility(View.VISIBLE);
-
-				docView.setVisibility(View.INVISIBLE);
 				hideButtons();
-				
+				docView.setVisibility(View.INVISIBLE);
 			}
 	// end effect		
 			@Override
@@ -416,7 +414,11 @@ public class MuPDFActivity extends BaseActivity{
 
 				if (core == null){
 					return;
-				} 
+				}
+				if( mTopBarIsSearch )
+				{
+					updateSearchBox(i , false);
+				}
 				MuPDFPageView pageView = (MuPDFPageView) docView.getDisplayedView();
 				if(pageView!=null){
 					pageView.cleanRunningLinkList();
@@ -484,7 +486,7 @@ public class MuPDFActivity extends BaseActivity{
 				{
 					hideKeyboard();
 					updateThumbnailList(); // change background
-					updateSearchBox(docView.getCurrentPage()); // show on current page
+					updateSearchBox(docView.getCurrentPage(), true); // show on current page
 				}
 				else
 				{
@@ -628,49 +630,6 @@ public class MuPDFActivity extends BaseActivity{
 
 //end		
 		// Stick the document view and the buttons overlay into a parent view
-				RelativeLayout layout = new RelativeLayout(this);
-				/// nhi add for page effect		
-				if( useEffectPage )
-				{
-
-					mCurlView = new CurlView(MuPDFActivity.this)
-					{
-						@Override
-					protected void onTapMainDocArea() {
-							// TODO Auto-generated method stub
-							if (!buttonsVisible) {
-								showButtons();
-							} else {
-								hideButtons();
-							}
-							//Log.i("onTapMainDocArea : "+ mCurlView.mState,"doc: "+ docView.getVisibility());
-							docView.setVisibility(View.VISIBLE);
-								
-						}
-					
-						@Override
-						protected void hideMenu() {
-							// TODO Auto-generated method stub
-							hideButtons();
-						}
-					};
-					
-					mCurlView.setPageProvider(new PageProvider());
-					mCurlView.setSizeChangedObserver(new SizeChangedObserver());
-				/*	if( mCurlView.getCurrentIndex() != docView.getCurrentPage())///update curl view index
-					{
-						new Thread(new Runnable() {
-							
-							@Override
-							public void run() {
-								mCurlView.setCurrentIndex(docView.getCurrentPage());
-							}
-						}).start(); 
-					}*/
-					mCurlView.setBackgroundColor(Color.TRANSPARENT);
-					layout.addView(mCurlView);
-				}
-			/// end page effect
 
 		// Reinstate last state if it was recorded
 		SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
@@ -685,7 +644,59 @@ public class MuPDFActivity extends BaseActivity{
 				docView.setDisplayedViewIndex((pageNum == 0) ? 0 : pageNum * 2 - 1);
 			}
 		}
+		RelativeLayout layout = new RelativeLayout(this);
+		//Log.i(TAG, " max mem : " + Runtime.getRuntime().maxMemory() + "\n" );
+		//Log.i(TAG, " totalMemory : " + Runtime.getRuntime().totalMemory() + "\n" );
+		//Log.i(TAG, " free mem : " + Runtime.getRuntime().freeMemory() + "\n" );
 
+		/// nhi add for page effect		
+		if( useEffectPage )
+		{
+
+			mCurlView = new CurlView(MuPDFActivity.this)
+			{
+				@Override
+			protected void onTapMainDocArea() {
+					// TODO Auto-generated method stub
+					if (!buttonsVisible) {
+						showButtons();
+					} else {
+						hideButtons();
+					}
+
+					docView.setVisibility(View.VISIBLE);
+
+				}
+			
+				@Override
+				protected void hideMenu() {
+					// TODO Auto-generated method stub
+					hideButtons();
+				}
+			};
+
+			//if( savedInstanceState == null)
+			{
+				/*if( mCurlView.getCurrentIndex() != docView.getCurrentPage())///update curl view index
+				{
+					new Thread(new Runnable() {
+						
+						@Override
+						public void run() {
+							mCurlView.setCurrentIndex(docView.getCurrentPage());
+						}
+					}).start(); 
+				}*/
+
+;
+//if( savedInstanceState == null)
+				mCurlView.setCurrentIndex(docView.getCurrentPage());
+			}
+			mCurlView.setBackgroundColor(Color.TRANSPARENT);
+			layout.addView(mCurlView);
+		}
+	/// end page effect
+	
 	// Give preview thumbnails time to appear before showing bottom bar
 		if (savedInstanceState == null
 				|| !savedInstanceState.getBoolean("ButtonsHidden", false)) {
@@ -701,7 +712,7 @@ public class MuPDFActivity extends BaseActivity{
 						}
 					});
 				}
-			}, 250);
+			}, 500);
 		}
 		
 		
@@ -778,7 +789,11 @@ public class MuPDFActivity extends BaseActivity{
 		if( useEffectPage 
 		  && getWindowManager().getDefaultDisplay().getWidth()!= PHONE_WIDTH )//crash when pause
 		{
-			mCurlView = null; 
+			if( useThreadToLoading && progressBarLayout == null)
+			{
+				mCurlView.clearData();
+				mCurlView = null; 
+			}
 		}
 		System.gc();
 
@@ -932,7 +947,7 @@ public class MuPDFActivity extends BaseActivity{
 				hideButtons();
 				if( MuPDFActivity.mTopBarIsSearch && MuPDFActivity.searchAllPages)//nhi add for search all pages
 				{
-					updateSearchBox((int)id);
+					updateSearchBox((int)id, true);
 				}
 				else
 				{
@@ -1167,7 +1182,6 @@ public class MuPDFActivity extends BaseActivity{
 					listThumbnailBitmap = list;
 				
 				}
-				
 			}
 			MuPDFActivity.this.runOnUiThread(new Runnable() {
 				
@@ -1190,19 +1204,21 @@ public class MuPDFActivity extends BaseActivity{
 			}
 			setCurrentlyViewedPreview();
 			System.gc();
-			MuPDFActivity.this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
+			if( !useEffectPage)
+				MuPDFActivity.this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
 		}
 		
 	}
 /**
  * Search text on all pages
  */	
-	public void updateSearchBox( int index )//nhi add for search all pages
+	public void updateSearchBox( int index , boolean move)//nhi add for search all pages
 	{
 
 		searchTaskTwoPages = null; // nhi add
 		// Ask the ReaderView to move to the resulting page
-		
+		if( countResultOnePage == null || searchAllPageList == null)
+			return;
 		if( core.getDisplayPages() == 1)
 		{
 			if( countResultOnePage[index]!=0)
@@ -1246,7 +1262,8 @@ public class MuPDFActivity extends BaseActivity{
 				searchTaskTwoPages = null;
 			
 		}
-		docView.setDisplayedViewIndex(index);
+		if( move)
+			docView.setDisplayedViewIndex(index);
 	}
 /**
  * Curl Page Methods.
@@ -1265,12 +1282,12 @@ public class MuPDFActivity extends BaseActivity{
 				countView++;
 				if(countView >= 3)
 				{
-							if (progressBarLayout != null)
-							{
-								progressBarLayout.setVisibility(View.GONE);
-								progressBarLayout = null;
-								docView.setVisibility(View.VISIBLE);
-							}
+
+						progressBarLayout.setVisibility(View.GONE);
+						progressBarLayout = null;
+						docView.setVisibility(View.VISIBLE);
+	
+						
 				}
 			}
 		}
@@ -1281,12 +1298,13 @@ public class MuPDFActivity extends BaseActivity{
 				{
 					if(!mCurlView.isInAnimated())
 					{
-						//Log.i("visibleDocView:"+ docView.getVisibility()+" ; curl: "+ mCurlView.getVisibility(), " scale: "+ docView.mScale);
 						docView.setVisibility(View.VISIBLE);
 						
 					}
 				}
 		}
+		else
+			docView.setVisibility(View.VISIBLE);
 		
 	}
 	public static void invisibleDocView()
@@ -1303,8 +1321,6 @@ public class MuPDFActivity extends BaseActivity{
 	{
 		public void handleMessage(Message msg) 
 		{
-		
-			
 			int mCurrentIndex = msg.getData().getInt("mCurrentIndex");
 			if(mCurrentIndex >= 0 && docView.getCurrentPage() != mCurrentIndex)
 			{
@@ -1381,9 +1397,66 @@ public class MuPDFActivity extends BaseActivity{
 
 		@Override
 		public int getPageCount() {
-			if( mCurlView.getViewMode() == CurlView.SHOW_TWO_PAGES)
-				return core.countPages()-1;
-			return core.countPages();
+			Log.i("culr:"+ mCurlView, "core: "+core);
+			if( mCurlView == null )
+			{
+				Log.d("getPageCount:", "nulll");
+				System.gc();
+				MuPDFActivity.this.runOnUiThread(new Runnable() {
+					
+					@Override
+					public void run() {
+						// TODO Auto-generated method stub
+						mCurlView = new CurlView(MuPDFActivity.this)
+						{
+							@Override
+							protected void onTapMainDocArea() {
+								// TODO Auto-generated method stub
+								if (!buttonsVisible) {
+									showButtons();
+								} else {
+									hideButtons();
+								}
+								//Log.i("onTapMainDocArea 1: "+ mCurlView.mState,"doc: "+ docView.getVisibility());
+								docView.setVisibility(View.VISIBLE);
+								mCurlView.setVisibility(View.INVISIBLE);
+								
+							}
+						
+							@Override
+							protected void hideMenu() {
+								// TODO Auto-generated method stub
+								hideButtons();
+							}
+						};
+						if( PHONE_WIDTH > PHONE_HEIGHT )
+						{
+							mCurlView.setViewMode(CurlView.SHOW_TWO_PAGES);
+						}
+						else
+						{
+							mCurlView.setViewMode(CurlView.SHOW_ONE_PAGE);
+						}
+						mCurlView.setPageProvider(new PageProvider());
+						mCurlView.setSizeChangedObserver(new SizeChangedObserver());
+						
+						mCurlView.setBackgroundColor(Color.TRANSPARENT);
+						
+					}
+				});
+				//if( mCurlView.getViewMode() == CurlView.SHOW_TWO_PAGES)
+				if( core.getDisplayPages() == 2)
+					return core.countPages()-1;
+				return core.countPages();
+			}
+			else
+			{
+				//if( mCurlView.getViewMode() == CurlView.SHOW_TWO_PAGES)
+				if( core.getDisplayPages() == 2)
+					return core.countPages()-1;
+				return core.countPages();
+			}
+
 		}
 
 		private Bitmap loadBitmap(int width, int height, int index) {
@@ -1425,11 +1498,10 @@ public class MuPDFActivity extends BaseActivity{
 			d.draw(c);
 			return b;
 		}
-
+boolean firstUpdated = true;
 		@Override
 		public void updatePage(CurlPage page, int width, int height, int index) 
 		{
-
 			if( mCurlView.getViewMode() == mCurlView.SHOW_ONE_PAGE)
 			{
 				page.setTexture(loadBitmap(width, height, index), CurlPage.SIDE_FRONT);
@@ -1463,7 +1535,12 @@ public class MuPDFActivity extends BaseActivity{
 					
 				}
 			}
-		
+			if( firstUpdated )
+			{
+				MuPDFActivity.this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
+				firstUpdated = false;
+			}
+
 		}
 
 	}
@@ -1472,6 +1549,8 @@ public class MuPDFActivity extends BaseActivity{
  */
 	private void setCurrentlyViewedPreview() 
 	{
+		if( core == null )
+			return;
 		if( docView != null)
 		{
 			int i = docView.getDisplayedViewIndex();
