@@ -20,6 +20,7 @@ import android.widget.Scroller;
 
 
 import com.artifex.mupdf.LinkInfoExternal;
+import com.artifex.mupdf.MuPDFPageView;
 import com.library.activity.MuPDFActivity;
 
 public class ReaderView extends AdapterView<Adapter>
@@ -238,6 +239,18 @@ public class ReaderView extends AdapterView<Adapter>
 	@Override
 	public boolean onDoubleTap(MotionEvent e) {
 		
+		if( mScale == 1.0f ) /// lock zoom when tap outside page
+		{
+			MuPDFPageView pageView = (MuPDFPageView) getDisplayedView();
+			if( e.getX() < pageView.getLeft() || e.getX() > pageView.getRight())
+			{
+				return true;
+			}
+			if( e.getY() < pageView.getTop() || e.getY() > pageView.getBottom())
+			{
+				return true;
+			}
+		}
 		float previousScale = mScale;
 		mScale += (mScale == 1f) ? 2f : -2f;
 		if( mScale < 1f)
@@ -317,7 +330,7 @@ public boolean isJustScale = false;
 			float previousScale = mScale;
 			mScale = Math.min(Math.max(mScale * detector.getScaleFactor(), MIN_SCALE), MAX_SCALE);
 			float factor = mScale/previousScale;
-		Log.d("update zoom ", "start scale");
+		Log.d("***************************************update zoom ", "start scale: "+mScale);
 			View v = mChildViews.get(mCurrent);
 			if (v != null) {
 				// Work out the focus point relative to the view top left
@@ -377,7 +390,7 @@ public boolean isJustScale = false;
 					// If, at the end of user interaction, there is no
 					// current inertial scroll in operation then animate
 					// the view onto screen if necessary
-					Log.d(TAG, "SLIDE");
+					Log.d(TAG +"; mScale: "+mScale, "SLIDE : "+event.getX());
 					if( !MuPDFActivity.useEffectPage)
 					{
 						slideViewOntoScreen(v);
@@ -489,23 +502,26 @@ public boolean isJustScale = false;
 					}
 				}
 			}
-
-			// Remove not needed children and hold them for reuse
-			int numChildren = mChildViews.size();
-			int childIndices[] = new int[numChildren];
-			for (int i = 0; i < numChildren; i++)
-				childIndices[i] = mChildViews.keyAt(i);
-
-			for (int i = 0; i < numChildren; i++) {
-				int ai = childIndices[i];
-				if (ai < mCurrent - 1 || ai > mCurrent + 1) {
-					View v = mChildViews.get(ai);
-					if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.HONEYCOMB){
-						onNotInUse(v);
+			if(!MuPDFActivity.useEffectPage ||(MuPDFActivity.useEffectPage && mScale > 1.0f)) //lock scroll 
+			{
+				// Remove not needed children and hold them for reuse
+				int numChildren = mChildViews.size();
+				int childIndices[] = new int[numChildren];
+				for (int i = 0; i < numChildren; i++)
+					childIndices[i] = mChildViews.keyAt(i);
+	
+				for (int i = 0; i < numChildren; i++) 
+				{
+					int ai = childIndices[i];
+					if (ai < mCurrent - 1 || ai > mCurrent + 1) {
+						View v = mChildViews.get(ai);
+						if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.HONEYCOMB){
+							onNotInUse(v);
+						}
+						mViewCache.add(v);
+						removeViewInLayout(v);
+						mChildViews.remove(ai);
 					}
-					mViewCache.add(v);
-					removeViewInLayout(v);
-					mChildViews.remove(ai);
 				}
 			}
 		} else {
@@ -564,27 +580,28 @@ public boolean isJustScale = false;
 		}
 
 		cv.layout(cvLeft, cvTop, cvRight, cvBottom);
-
-		if (mCurrent > 0) {
-			View lv = getOrCreateChild(mCurrent - 1);
-			Point leftOffset = subScreenSizeOffset(lv);
-			int gap = leftOffset.x + GAP + cvOffset.x;
-			lv.layout(cvLeft - lv.getMeasuredWidth() - gap,
-					(cvBottom + cvTop - lv.getMeasuredHeight())/2,
-					cvLeft - gap,
-					(cvBottom + cvTop + lv.getMeasuredHeight())/2);
+		if(!MuPDFActivity.useEffectPage ||(MuPDFActivity.useEffectPage && mScale > 1.0f)) //lock scroll 
+		{
+			if (mCurrent > 0) {
+				View lv = getOrCreateChild(mCurrent - 1);
+				Point leftOffset = subScreenSizeOffset(lv);
+				int gap = leftOffset.x + GAP + cvOffset.x;
+				lv.layout(cvLeft - lv.getMeasuredWidth() - gap,
+						(cvBottom + cvTop - lv.getMeasuredHeight())/2,
+						cvLeft - gap,
+						(cvBottom + cvTop + lv.getMeasuredHeight())/2);
+			}
+	
+			if (mCurrent + 1 < mAdapter.getCount()) {
+				View rv = getOrCreateChild(mCurrent + 1);
+				Point rightOffset = subScreenSizeOffset(rv);
+				int gap = cvOffset.x + GAP + rightOffset.x;
+				rv.layout(cvRight + gap,
+						(cvBottom + cvTop - rv.getMeasuredHeight())/2,
+						cvRight + rv.getMeasuredWidth() + gap,
+						(cvBottom + cvTop + rv.getMeasuredHeight())/2);
+			}
 		}
-
-		if (mCurrent + 1 < mAdapter.getCount()) {
-			View rv = getOrCreateChild(mCurrent + 1);
-			Point rightOffset = subScreenSizeOffset(rv);
-			int gap = cvOffset.x + GAP + rightOffset.x;
-			rv.layout(cvRight + gap,
-					(cvBottom + cvTop - rv.getMeasuredHeight())/2,
-					cvRight + rv.getMeasuredWidth() + gap,
-					(cvBottom + cvTop + rv.getMeasuredHeight())/2);
-		}
-
 		invalidate();
 	}
 

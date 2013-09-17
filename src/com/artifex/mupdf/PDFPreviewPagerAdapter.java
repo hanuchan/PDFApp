@@ -102,31 +102,39 @@ public class PDFPreviewPagerAdapter extends BaseAdapter {
 		holder.previewPageLinearLayout.setBackgroundColor(Color.TRANSPARENT);
 		if( MuPDFActivity.useImageThumbnailCacheList ) // nhi add
 		{
-			//Log.i("holder: "+holder.previewPageImageView , " bm:"+MuPDFActivity.listThumbnailBitmap);
-			holder.previewPageImageView.setImageBitmap(MuPDFActivity.listThumbnailBitmap.get(position));
-			if (getCurrentlyViewing() == position
-					|| (mCore.getDisplayPages() == 2 && getCurrentlyViewing() == position - 1)) 
+			if( MuPDFActivity.listThumbnailBitmap[position] != null )
 			{
-				holder.previewPageLinearLayout
-						.setBackgroundColor(mContext
-								.getResources()
-								.getColor(
-										R.color.thumbnail_selected_background));
-			} else 
-			{
-				holder.previewPageLinearLayout
-						.setBackgroundColor(Color.TRANSPARENT);
-				if( MuPDFActivity.mTopBarIsSearch && MuPDFActivity.searchAllPages)//nhi add for search all pages
+				holder.previewPageImageView.setImageBitmap(MuPDFActivity.listThumbnailBitmap[position]);
+		
+				if (getCurrentlyViewing() == position
+						|| (mCore.getDisplayPages() == 2 && getCurrentlyViewing() == position - 1)) 
 				{
-					if( MuPDFActivity.countResultOnePage!= null && MuPDFActivity.countResultOnePage[position]!=0)
+					holder.previewPageLinearLayout
+							.setBackgroundColor(mContext
+									.getResources()
+									.getColor(
+											R.color.thumbnail_selected_background));
+				} 
+				else 
+				{
+					holder.previewPageLinearLayout
+							.setBackgroundColor(Color.TRANSPARENT);
+					if( MuPDFActivity.mTopBarIsSearch && MuPDFActivity.searchAllPages)//nhi add for search all pages
 					{
-						holder.previewPageLinearLayout
-						.setBackgroundColor(mContext
-								.getResources()
-								.getColor(
-										R.color.thumbnail_search_background));
+						if( MuPDFActivity.countResultOnePage!= null && MuPDFActivity.countResultOnePage[position]!=0)
+						{
+							holder.previewPageLinearLayout
+							.setBackgroundColor(mContext
+									.getResources()
+									.getColor(
+											R.color.thumbnail_search_background));
+						}
 					}
 				}
+			}
+			else
+			{
+				drawPageImageView(holder, position);
 			}
 		} //end add
 		else
@@ -201,36 +209,91 @@ public class PDFPreviewPagerAdapter extends BaseAdapter {
 				mPreviewSize.x = (int) ((float) padding / scale);
 				mPreviewSize.y = padding;
 			}
-			Bitmap lq = null;
-			lq = getCachedBitmap(position);
-			mBitmapCache.put(position, lq);
-			return lq;
+			if( MuPDFActivity.useImageThumbnailCacheList)
+			{
+				Bitmap lq = Bitmap.createBitmap(mPreviewSize.x, mPreviewSize.y,
+						Bitmap.Config.ARGB_8888);
+				mCore.drawSinglePage(position, lq, mPreviewSize.x, mPreviewSize.y);
+				MuPDFActivity.listThumbnailBitmap[position] = lq;
+				return lq;
+			}
+			else
+			{
+				Bitmap lq = null;
+				lq = getCachedBitmap(position);
+				mBitmapCache.put(position, lq);
+				return lq;
+			}
 		}
 
 		@Override
 		protected void onPostExecute(Bitmap bitmap) {
-			if (isCancelled()) {
-				bitmap = null;
+			if( MuPDFActivity.useImageThumbnailCacheList )
+			{
+				if( viewHolderReference != null && MuPDFActivity.listThumbnailBitmap[position] != null)
+				{
+					final ViewHolder holder = viewHolderReference.get();
+					if (holder != null ) 
+					{
+						final BitmapWorkerTask bitmapWorkerTask = getBitmapWorkerTask(holder.previewPageImageView);
+						if (this == bitmapWorkerTask && holder != null) 
+						{
+							holder.previewPageImageView.setImageBitmap(MuPDFActivity.listThumbnailBitmap[position]);
+							holder.previewPageNumber.setText(String
+									.valueOf(position + 1));
+							if (getCurrentlyViewing() == position
+									|| (mCore.getDisplayPages() == 2 && getCurrentlyViewing() == position - 1)) {
+								holder.previewPageLinearLayout
+										.setBackgroundColor(mContext
+												.getResources()
+												.getColor(
+														R.color.thumbnail_selected_background));
+							} 
+							else 
+							{
+								holder.previewPageLinearLayout
+										.setBackgroundColor(Color.TRANSPARENT);
+								if( MuPDFActivity.mTopBarIsSearch && MuPDFActivity.searchAllPages)//nhi add for search all pages
+								{
+									if( MuPDFActivity.countResultOnePage!= null && MuPDFActivity.countResultOnePage[position]!=0)
+									{
+										holder.previewPageLinearLayout
+										.setBackgroundColor(mContext
+												.getResources()
+												.getColor(
+														R.color.thumbnail_search_background));
+									}
+								}
+							}
+						}
+					}
+				}
 			}
-
-			if (viewHolderReference != null && bitmap != null) {
-				final ViewHolder holder = viewHolderReference.get();
-				if (holder != null) {
-					final BitmapWorkerTask bitmapWorkerTask = getBitmapWorkerTask(holder.previewPageImageView);
-					if (this == bitmapWorkerTask && holder != null) {
-						holder.previewPageImageView.setImageBitmap(bitmap);
-						holder.previewPageNumber.setText(String
-								.valueOf(position + 1));
-						if (getCurrentlyViewing() == position
-								|| (mCore.getDisplayPages() == 2 && getCurrentlyViewing() == position - 1)) {
-							holder.previewPageLinearLayout
-									.setBackgroundColor(mContext
-											.getResources()
-											.getColor(
-													R.color.thumbnail_selected_background));
-						} else {
-							holder.previewPageLinearLayout
-									.setBackgroundColor(Color.TRANSPARENT);
+			else
+			{
+				if (isCancelled()) {
+					bitmap = null;
+				}
+	
+				if (viewHolderReference != null && bitmap != null) {
+					final ViewHolder holder = viewHolderReference.get();
+					if (holder != null) {
+						final BitmapWorkerTask bitmapWorkerTask = getBitmapWorkerTask(holder.previewPageImageView);
+						if (this == bitmapWorkerTask && holder != null) {
+							holder.previewPageImageView.setImageBitmap(bitmap);
+							holder.previewPageNumber.setText(String
+									.valueOf(position + 1));
+							if (getCurrentlyViewing() == position
+									|| (mCore.getDisplayPages() == 2 && getCurrentlyViewing() == position - 1)) {
+								holder.previewPageLinearLayout
+										.setBackgroundColor(mContext
+												.getResources()
+												.getColor(
+														R.color.thumbnail_selected_background));
+							} else {
+								holder.previewPageLinearLayout
+										.setBackgroundColor(Color.TRANSPARENT);
+							}
 						}
 					}
 				}

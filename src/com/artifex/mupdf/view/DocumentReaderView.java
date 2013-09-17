@@ -39,7 +39,6 @@ public abstract class DocumentReaderView extends ReaderView {
 			SparseArray<LinkInfoExternal[]> pLinkOfDocument) {
 		super(context, pLinkOfDocument);
 		s_Instant = this;
-		Log.i("DocumentReaderView", "DocumentReaderView");
 	}
 	
 	@Override
@@ -161,7 +160,7 @@ public boolean onHitLinkActived( MotionEvent e)
 					break;
 					
 					case MotionEvent.ACTION_POINTER_DOWN:
-					//	Log.d("doc zooom : "+ MuPDFActivity.mCurlView.getVisibility(),"MotionEvent.ACTION_POINTER_DOWN");
+						Log.d("doc zooom : "+ MuPDFActivity.mCurlView.getVisibility(),"MotionEvent.ACTION_POINTER_DOWN");
 						if(MuPDFActivity.mCurlView.mState !=CurlView.k_EffectState){
 							MuPDFActivity.mCurlView.mState = CurlView.k_ZoomState;
 						}
@@ -174,12 +173,18 @@ public boolean onHitLinkActived( MotionEvent e)
 					//	Log.d("MotionEvent.ACTION_UP", "MuPDFActivity.mCurlView.mState: "+MuPDFActivity.mCurlView.mState);
 					//	Log.d("curl : "+ MuPDFActivity.mCurlView.getVisibility()," doc: "+ getVisibility());
 						//MuPDFActivity.mCurlView.onTouchZoomUp(event);
-						if(MuPDFActivity.mCurlView.mState == CurlView.k_EffectState)
+						float dx = mPointDown.x - event.getX();
+						float dy = mPointDown.y - event.getY();
+						float delta1 = FloatMath.sqrt(dx * dx + dy * dy); /// check delta for double tap
+					
+						if(delta1 >= k_delta && MuPDFActivity.mCurlView.mState == CurlView.k_EffectState)
 						{
+							Log.i("doc MotionEvent.ACTION_UP", " scale :"+DocumentReaderView.s_Instant.mScale);
 							MuPDFActivity.mCurlView.onTouchEffectUp(event);
 						MuPDFActivity.mCurlView.mState = CurlView.k_DummySate;
 						return false;
 						}
+						//Log.d("doc1: " + getVisibility(), "curl: " + MuPDFActivity.mCurlView.getVisibility());
 					break;
 					case MotionEvent.ACTION_POINTER_UP:
 					//	Log("MotionEvent.ACTION_POINTER_UP");
@@ -223,64 +228,6 @@ public boolean onHitLinkActived( MotionEvent e)
 				invisibleEffectWhenZooming();
 			}
 		}
-		//end add
-		/*
-		if (event.getActionMasked() == MotionEvent.ACTION_DOWN) 
-		{
-			showButtonsDisabled = false;
-			//Log.i(TAG, "action down: "+ event.getX());
-			// nhi add to control buttons list in menu	
-			if( MuPDFActivity.useEffectPage )
-			{
-				if( mScale == 1.0f && !onHitLinkActived( event))
-				{
-					
-				//	Log.d("+++++++++++++++++++++++++++++++++TOUCH EVENT", " show effect");
-					if( MuPDFActivity.currentViewMode == CurlView.SHOW_ONE_PAGE)
-					{
-						if( event.getX() <= MuPDFActivity.PHONE_WIDTH/4)
-						{
-							onShowEffect(event);
-						
-							return false;
-						}
-						else if(  event.getX() >= MuPDFActivity.PHONE_WIDTH*3/4 )
-						{
-							onShowEffect( event);
-				
-							return false;
-						}
-						else
-						{
-							invisibleEffectWhenZooming();
-						}
-					}
-					else
-					{
-						if( event.getX() <= MuPDFActivity.PHONE_WIDTH/3)
-						{
-							onShowEffect(event);
-					
-							return false;
-						}
-						else if(  event.getX() >= MuPDFActivity.PHONE_WIDTH*2/3 )
-						{
-							onShowEffect(event);
-						
-							return false;
-						}
-						else
-						{
-							invisibleEffectWhenZooming();
-						}
-					}
-				}
-				else
-				{
-					invisibleEffectWhenZooming();
-				}
-			}
-		}*/
 		// nhi end add
 
 		return super.onTouchEvent(event);

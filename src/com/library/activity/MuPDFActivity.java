@@ -89,7 +89,7 @@ import com.pdf.effect.CurlView;
 //TODO: remove preffix mXXXX from all properties this class
 public class MuPDFActivity extends BaseActivity{
 
-	public static boolean flagSetBackgroundTransparent = false;
+	public static boolean flagSetBackgroundTransparent = false; // fix for show doc when loading
 /** Flag for add all features **/	
 	
 	/**
@@ -112,7 +112,7 @@ public class MuPDFActivity extends BaseActivity{
 	/**
 	 * Use curl effect when change page
 	 */
-	public final static boolean useEffectPage = true;
+	public final static boolean useEffectPage = !true;
 	/**
 	 * Search text on all pages
 	 */
@@ -123,7 +123,8 @@ public class MuPDFActivity extends BaseActivity{
 	private ThumbnailViews mPreview;
 	private PDFPreviewPagerAdapter pdfPreviewPagerAdapter;
 	private Point mPreviewSize = null;
-	public static List<Bitmap> listThumbnailBitmap = null;
+	public static Bitmap[] listThumbnailBitmap = null;
+	public final int LENGTH_CACHE_FIRST = 16;
 
 /**
  * Show progress bar while loading in first screen 
@@ -253,7 +254,7 @@ public class MuPDFActivity extends BaseActivity{
 					listThumbnailBitmap = null;
 					if( !useProgressBarToLoading ) //nhi add to use progressbar for show loading
 						process = ProgressDialog.show(this, "", "");
-					List<Bitmap> list = new ArrayList<Bitmap>();
+					Bitmap[] list = new Bitmap[core.countSinglePages()];
 					
 					for(int i = 0; i < core.countSinglePages(); i++)
 					{
@@ -261,7 +262,7 @@ public class MuPDFActivity extends BaseActivity{
 						Bitmap lq = Bitmap.createBitmap(mPreviewSize.x, mPreviewSize.y,
 								Bitmap.Config.ARGB_8888);
 						core.drawSinglePage(i, lq, mPreviewSize.x, mPreviewSize.y);
-						list.add(lq);
+						list[i] = lq;
 			
 					}
 					listThumbnailBitmap = list;
@@ -1125,7 +1126,7 @@ public class MuPDFActivity extends BaseActivity{
 /**
  *  Use thread to loading all data on create
  */
-	private class ThumbnailAsyncTask extends AsyncTask<Bundle, List<Bitmap>, List<Bitmap>>
+	private class ThumbnailAsyncTask extends AsyncTask<Bundle, Bitmap[], Bitmap[]>
 	{
 		private Context mContext;
 		public ThumbnailAsyncTask(Context ctx)
@@ -1151,7 +1152,7 @@ public class MuPDFActivity extends BaseActivity{
 		}
 		
 		@Override
-		protected List<Bitmap> doInBackground(Bundle... params) 
+		protected Bitmap[] doInBackground(Bundle... params) 
 		{
 			final Bundle bd = (Bundle)params[0];
 			// TODO Auto-generated method stub
@@ -1160,6 +1161,16 @@ public class MuPDFActivity extends BaseActivity{
 			//	Log.i(" listThumbnailBitmap"+listThumbnailBitmap,"bd : "+bd);
 				if( bd ==null || ( listThumbnailBitmap == null)) // fix bug crash after back from link active
 				{
+					SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
+					int orientation = prefs.getInt("orientation", mOrientation);
+					int pageNum = prefs.getInt("page"+fileName, 0);
+					int pageDisplay = pageNum;
+
+					if( orientation == Configuration.ORIENTATION_LANDSCAPE)
+					{
+						pageDisplay = pageNum * 2 - 1;
+					}
+
 					listThumbnailBitmap = null;
 					if (mPreviewSize == null) {
 						mPreviewSize = new Point();
@@ -1172,21 +1183,51 @@ public class MuPDFActivity extends BaseActivity{
 						mPreviewSize.x = (int) ((float) padding / scale);
 						mPreviewSize.y = padding;
 					}
-					
-					List<Bitmap> list = new ArrayList<Bitmap>();
-					
-					for(int i = 0; i < core.countSinglePages(); i++)
+					/// cache from pageNumber, left and right
+					final int lenghtList = core.countSinglePages();
+					listThumbnailBitmap = new Bitmap[lenghtList];
+					//Log.i(" pageDisplay : " + pageDisplay + "; pageNum:"+pageNum, " lenghtList : "+lenghtList +" ;orientation:"+orientation);
+					if( pageDisplay <= LENGTH_CACHE_FIRST/2)
 					{
-
-						Bitmap lq = Bitmap.createBitmap(mPreviewSize.x, mPreviewSize.y,
-								Bitmap.Config.ARGB_8888);
-						core.drawSinglePage(i, lq, mPreviewSize.x, mPreviewSize.y);
-						list.add(lq);
 						
-						
+						for( int i = 0; i< LENGTH_CACHE_FIRST && i < lenghtList; i++)
+						{
+							Bitmap lq = Bitmap.createBitmap(mPreviewSize.x, mPreviewSize.y,
+									Bitmap.Config.ARGB_8888);
+							core.drawSinglePage( i, lq, mPreviewSize.x, mPreviewSize.y);
+							listThumbnailBitmap[ i ] = lq;
+						}
 					}
-					listThumbnailBitmap = list;
-				
+					else
+					{
+						if( pageDisplay == lenghtList -1 )
+						{
+							for( int i = 0; i< LENGTH_CACHE_FIRST && i < lenghtList; i++)
+							{
+								Bitmap lq = Bitmap.createBitmap(mPreviewSize.x, mPreviewSize.y,
+										Bitmap.Config.ARGB_8888);
+								core.drawSinglePage(pageDisplay-i, lq, mPreviewSize.x, mPreviewSize.y);
+								listThumbnailBitmap[pageDisplay-i] = lq;
+							}
+						}
+						else 
+						{
+							
+							int cacheRight = pageDisplay + LENGTH_CACHE_FIRST/2;
+							if( cacheRight > lenghtList - 1)
+								cacheRight = lenghtList - 1;
+							int cacheLeft = cacheRight - LENGTH_CACHE_FIRST;
+							for( int i = cacheLeft; i< cacheRight && i< lenghtList; i++)
+							{
+
+								Bitmap lq = Bitmap.createBitmap(mPreviewSize.x, mPreviewSize.y,
+										Bitmap.Config.ARGB_8888);
+								core.drawSinglePage(i, lq, mPreviewSize.x, mPreviewSize.y);
+								listThumbnailBitmap[i] = lq;
+							}
+						}
+					}
+
 				}
 			}
 			MuPDFActivity.this.runOnUiThread(new Runnable() {
@@ -1202,7 +1243,7 @@ public class MuPDFActivity extends BaseActivity{
 		}
 		
 		@Override
-		protected void onPostExecute(List<Bitmap> result) {
+		protected void onPostExecute(Bitmap[] result) {
 			// TODO Auto-generated method stub
 			if( !useProgressBarToLoading )
 			{
