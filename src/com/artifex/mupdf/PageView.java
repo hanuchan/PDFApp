@@ -5,11 +5,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import com.appgeneration.magmanager.library.R;
+import com.artifex.mupdf.view.DocumentReaderView;
 import com.library.activity.MuPDFActivity;
 
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.PointF;
@@ -122,7 +124,7 @@ public abstract class PageView extends ViewGroup {
 	private static final int HIGHLIGHT_COLOR = 0x805555FF;
 	private static final int LINK_COLOR = 0x80FFCC88;
 	private static final int BACKGROUND_COLOR = 0xFFFFFFFF;
-	private static final int PROGRESS_DIALOG_DELAY = 50;
+	private static final int PROGRESS_DIALOG_DELAY = 0;
 	private final Context   mContext;
 	protected     int       mPageNumber;
 	private       Point     mParentSize;
@@ -148,7 +150,7 @@ public abstract class PageView extends ViewGroup {
 	private       boolean   mIsBlank;
 	private       boolean   mUsingHardwareAcceleration;
 	private       boolean   mHighlightLinks;
-
+public static boolean isDrawingNewPage = false;
 	private       ProgressBar mBusyIndicator;
 	private final Handler   mHandler = new Handler();
 	private FrameLayout mLinksView;
@@ -160,6 +162,7 @@ public abstract class PageView extends ViewGroup {
 		mContext    = c;
 		mParentSize = parentSize;
 		setBackgroundColor(BACKGROUND_COLOR);
+
 		mEntireBmh = new BitmapHolder();
 		mPatchBmh = new BitmapHolder();
 //		mUsingHardwareAcceleration = Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB;
@@ -240,15 +243,26 @@ public abstract class PageView extends ViewGroup {
 
 		if (mPatch != null)
 			mPatch.setImageBitmap(null);
-
-		if (mBusyIndicator == null) {
-			mBusyIndicator = new ProgressBar(mContext);
-			mBusyIndicator.setIndeterminate(true);
-			mBusyIndicator.setBackgroundResource(R.drawable.busy);
-			addView(mBusyIndicator);
+		if( !MuPDFActivity.useEffectPage 
+				|| (MuPDFActivity.useEffectPage && !MuPDFActivity.flagSetBackgroundTransparent) )
+		{
+			if (mBusyIndicator == null) {
+				mBusyIndicator = new ProgressBar(mContext);
+				mBusyIndicator.setIndeterminate(true);
+				mBusyIndicator.setBackgroundResource(R.drawable.busy);
+				
+				addView(mBusyIndicator);
+			}
 		}
 	}
 	public void setPage(int page, PointF size) {
+		if( MuPDFActivity.useEffectPage)
+		{
+			if( !MuPDFActivity.flagSetBackgroundTransparent ) /// transparent background when updated from curl effect
+				setBackgroundColor(BACKGROUND_COLOR);
+			else
+				setBackgroundColor(Color.TRANSPARENT);
+		}
 		// Cancel pending tasks
 		if (mDrawEntire != null) {
 			mDrawEntire.cancel(true);
@@ -294,38 +308,52 @@ public abstract class PageView extends ViewGroup {
 		// Render the page in the background
 		mDrawEntire = new AsyncTask<Void,Void,Bitmap>() {
 			protected Bitmap doInBackground(Void... v) {
+				Log.i(" draw page          : w: "+ mParentSize.x+", h: "+ mParentSize.y, " w: "+mSize.x +"; h: "+mSize.y);
+				
+	
+		
 				return drawPage(mSize.x, mSize.y, 0, 0, mSize.x, mSize.y);
 			}
 
 			protected void onPreExecute() {
 				mEntire.setImageBitmap(null);
 				mEntireBmh.setBm(null);
-
-				if (mBusyIndicator == null) {
-					mBusyIndicator = new ProgressBar(mContext);
-					mBusyIndicator.setIndeterminate(true);
-					mBusyIndicator.setBackgroundResource(R.drawable.busy);
-					addView(mBusyIndicator);
-					mBusyIndicator.setVisibility(INVISIBLE);
-					mHandler.postDelayed(new Runnable() {
-						public void run() {
-							if (mBusyIndicator != null)
-								mBusyIndicator.setVisibility(VISIBLE);
-						}
-					}, PROGRESS_DIALOG_DELAY);
+				isDrawingNewPage = true;
+				if(!MuPDFActivity.useEffectPage ||( MuPDFActivity.useEffectPage && !MuPDFActivity.flagSetBackgroundTransparent)  )
+				{
+					if (mBusyIndicator == null) {
+						mBusyIndicator = new ProgressBar(mContext);
+						mBusyIndicator.setIndeterminate(true);
+						mBusyIndicator.setBackgroundResource(R.drawable.busy);
+						addView(mBusyIndicator);
+						mBusyIndicator.setVisibility(INVISIBLE);
+						mHandler.postDelayed(new Runnable() {
+							public void run() {
+								if (mBusyIndicator != null)
+								{
+									mBusyIndicator.setVisibility(VISIBLE);
+								}
+								isDrawingNewPage = true;
+							
+							}
+						}, PROGRESS_DIALOG_DELAY);
+					}
 				}
 			}
 
 			protected void onPostExecute(Bitmap bm) {
-				removeView(mBusyIndicator);
+				if(!MuPDFActivity.useEffectPage ||( MuPDFActivity.useEffectPage && !MuPDFActivity.flagSetBackgroundTransparent))
+					removeView(mBusyIndicator);
 				mBusyIndicator = null;
 				mEntire.setImageBitmap(bm);
 				mEntireBmh.setBm(bm);
 				
-				
+				MuPDFActivity.flagSetBackgroundTransparent = false;
 				
 				invalidate();
-				MuPDFActivity.enableDocView(); // nhi add
+				if( MuPDFActivity.useEffectPage )
+					MuPDFActivity.enableDocView(); // nhi add
+
 			}
 		};
 

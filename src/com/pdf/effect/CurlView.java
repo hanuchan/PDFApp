@@ -17,6 +17,7 @@
 package com.pdf.effect;
 
 
+import com.artifex.mupdf.MuPDFCore;
 import com.artifex.mupdf.view.DocumentReaderView;
 import com.library.activity.MuPDFActivity;
 
@@ -170,7 +171,7 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 	public void onDrawFrame() {
 	
 		// We are not animating.
-		if (mAnimate == false) {
+		if (mAnimate == false || DocumentReaderView.s_Instant.mScale>1.0f) {
 			//Log.i("EFFECT GC -------------------------------------------------");
 			System.gc();
 			return;
@@ -403,7 +404,9 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 	}
 
 	public boolean onTouchEffectUp(MotionEvent me){
-		System.gc();
+		
+		if( DocumentReaderView.s_Instant.mScale > 1.0f)
+			return false;
 		uptime = System.currentTimeMillis();
 		upPoint = new PointF(me.getX(), me.getY());
 //Log("down x: "+downPoint.x+"; y: "+downPoint.y+"; up: "+upPoint.x+"; y:"+upPoint.y);
@@ -490,11 +493,12 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 	public boolean onTouch(View view, MotionEvent me) {
 		// No dragging during animation at the moment.
 		// TODO: Stop animation on touch event and return to drag mode.
-		if (mAnimate || mPageProvider == null) {
+		if (mAnimate || mPageProvider == null || DocumentReaderView.s_Instant.mScale > 1.0f) {
 			return false;
 		}
 		//Log.i("onShowEffect onTouch====================================");
 		 // Let the ScaleGestureDetector inspect all events.
+		if( me.getPointerCount() > 1)
 	    mScaleDetector.onTouchEvent(me);
 		// We need page rects quite extensively so get them for later use.
 		RectF rightRect = mRenderer.getPageRect(CurlRenderer.PAGE_RIGHT);
@@ -529,6 +533,7 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 			}
 
 		}
+		if( DocumentReaderView.s_Instant.mScale == 1.0f)
 		MuPDFActivity.invisibleDocView();
 	// nhi end add
 		// Store pointer position.
@@ -750,6 +755,15 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 			return true;
 			
 		}
+			case MotionEvent.ACTION_POINTER_DOWN:
+			{
+				Log.i("curl ACTION_POINTER_DOWN", "=====================: "+DocumentReaderView.s_Instant.getVisibility());
+				mState = k_ZoomState;
+				//setVisibility(VISIBLE);
+				DocumentReaderView.s_Instant.setVisibility(VISIBLE);	
+			}
+				
+				return true;
 		}
 
 		return true;
@@ -1124,9 +1138,9 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 	 * Updates bitmaps for page meshes.
 	 */
 	private void updatePages() {
-		Log.i("update pages: "+ MuPDFActivity.core,"curl: "+ MuPDFActivity.mCurlView);
 		if (mPageProvider == null || mPageBitmapWidth <= 0
-				|| mPageBitmapHeight <= 0 || MuPDFActivity.core == null || MuPDFActivity.mCurlView == null) {
+				|| mPageBitmapHeight <= 0 || MuPDFActivity.core == null 
+				|| MuPDFActivity.mCurlView == null || MuPDFCore.onDestroy) {
 			return;
 		}
 //Log.i("updatePages");
@@ -1221,7 +1235,6 @@ public class CurlView extends GLSurfaceView implements View.OnTouchListener,
 		 */
 		public void onSizeChanged(int width, int height);
 	}
-	
 	public void clearData()
 	{
 	//	mRenderer.removeCurlMesh(mPageLeft);

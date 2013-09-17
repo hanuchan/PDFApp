@@ -329,7 +329,7 @@ public boolean isJustScale = false;
 				requestLayout();
 			}
 			//if( mScale > 1.0f)
-				//MuPDFActivity.mCurlView.setVisibility(INVISIBLE);
+				MuPDFActivity.mCurlView.setVisibility(INVISIBLE);
 			//else
 			//	MuPDFActivity.mCurlView.setVisibility(VISIBLE);
 		}

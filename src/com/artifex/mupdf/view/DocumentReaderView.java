@@ -133,7 +133,7 @@ public boolean onHitLinkActived( MotionEvent e)
 		return super.onScaleBegin(d);
 	}
 	private PointF mPointDown = new PointF();
-	private static float k_delta = 30;
+	private float k_delta = 30;
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		if (event.getActionMasked() == MotionEvent.ACTION_DOWN) 
@@ -162,28 +162,29 @@ public boolean onHitLinkActived( MotionEvent e)
 					
 					case MotionEvent.ACTION_POINTER_DOWN:
 					//	Log.d("doc zooom : "+ MuPDFActivity.mCurlView.getVisibility(),"MotionEvent.ACTION_POINTER_DOWN");
-						if(MuPDFActivity.mCurlView.mState != MuPDFActivity.mCurlView.k_EffectState){
-							MuPDFActivity.mCurlView.mState = MuPDFActivity.mCurlView.k_ZoomState;
+						if(MuPDFActivity.mCurlView.mState !=CurlView.k_EffectState){
+							MuPDFActivity.mCurlView.mState = CurlView.k_ZoomState;
+						}
 							setVisibility(VISIBLE);
 							MuPDFActivity.mCurlView.setVisibility(INVISIBLE);	
-						}
+						
 						//MuPDFActivity.mCurlView.onTouchZoomDown(event);
 					break;
 					case MotionEvent.ACTION_UP:
 					//	Log.d("MotionEvent.ACTION_UP", "MuPDFActivity.mCurlView.mState: "+MuPDFActivity.mCurlView.mState);
 					//	Log.d("curl : "+ MuPDFActivity.mCurlView.getVisibility()," doc: "+ getVisibility());
 						//MuPDFActivity.mCurlView.onTouchZoomUp(event);
-						if(MuPDFActivity.mCurlView.mState == MuPDFActivity.mCurlView.k_EffectState)
+						if(MuPDFActivity.mCurlView.mState == CurlView.k_EffectState)
 						{
 							MuPDFActivity.mCurlView.onTouchEffectUp(event);
-						MuPDFActivity.mCurlView.mState = MuPDFActivity.mCurlView.k_DummySate;
+						MuPDFActivity.mCurlView.mState = CurlView.k_DummySate;
 						return false;
 						}
 					break;
 					case MotionEvent.ACTION_POINTER_UP:
 					//	Log("MotionEvent.ACTION_POINTER_UP");
 						//MuPDFActivity.mCurlView.onTouchZoomUp(event);
-						MuPDFActivity.mCurlView.mState = MuPDFActivity.mCurlView.k_DummySate;
+						MuPDFActivity.mCurlView.mState = CurlView.k_DummySate;
 						if( isJustScale )//reset pointer down
 						{
 							mPointDown.set(0, 0);

@@ -75,6 +75,7 @@ public class MuPDFCore {
 		{
 			throw new Exception("Failed to open "+filename);
 		}
+		onDestroy = false;
 	}
 
 	public String getFileName() {
@@ -142,8 +143,9 @@ public class MuPDFCore {
 			
 		}
 	}
-
+	public static boolean onDestroy = false;
 	public synchronized void onDestroy() {
+		onDestroy = true;
 		destroying();
 		globals = 0;
 	}
