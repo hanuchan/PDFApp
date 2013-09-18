@@ -162,25 +162,30 @@ public class MuPDFPageView extends PageView {
 				break;
 			}
 		}
-
-		if (runningLinks.contains(linkInfo.url)) {
-			Log.d(TAG, "Already running link: " + linkInfo.url);
-			return linkInfo.url;
-		} else if (!linkInfo.isFullScreen()) {
-			runningLinks.add(linkInfo.url);
+		
+		if( runningLinks != null && linkInfo != null) // fix bug crash
+		{
+			if (runningLinks.contains(linkInfo.url)) {
+				Log.d(TAG, "Already running link: " + linkInfo.url);
+				return linkInfo.url;
+			} else if (!linkInfo.isFullScreen()) {
+				runningLinks.add(linkInfo.url);
+			}
 		}
-
-		if (linkInfo.isMediaURI()) {
-			try {
-				final String basePath = mCore.getFileDirectory();
-				MediaHolder h = new MediaHolder(getContext(), linkInfo,
-						basePath);
-				h.setVisibility(View.VISIBLE);
-				this.mediaHolders.put(uriString, h);
-				addView(h);
-			} catch (IllegalStateException e) {
-				Log.e(TAG, "hitLinkUri failed", e);
-				return null;
+		if( linkInfo != null ) //fix bug crash
+		{
+			if (linkInfo.isMediaURI()) {
+				try {
+					final String basePath = mCore.getFileDirectory();
+					MediaHolder h = new MediaHolder(getContext(), linkInfo,
+							basePath);
+					h.setVisibility(View.VISIBLE);
+					this.mediaHolders.put(uriString, h);
+					addView(h);
+				} catch (IllegalStateException e) {
+					Log.e(TAG, "hitLinkUri failed", e);
+					return null;
+				}
 			}
 		}
 		return uriString;

@@ -145,7 +145,7 @@ public boolean onHitLinkActived( MotionEvent e)
 			{
 				if( MuPDFActivity.mCurlView!= null)
 				{
-					Log.i("touch ", " anim : "+ MuPDFActivity.mCurlView.isInAnimated());
+					//Log.i("touch :"+MuPDFActivity.mCurlView.getVisibility(), " anim : "+ MuPDFActivity.mCurlView.isInAnimated());
 					if( MuPDFActivity.mCurlView.isInAnimated())
 						return false;
 				}
@@ -160,7 +160,7 @@ public boolean onHitLinkActived( MotionEvent e)
 					break;
 					
 					case MotionEvent.ACTION_POINTER_DOWN:
-						Log.d("doc zooom : "+ MuPDFActivity.mCurlView.getVisibility(),"MotionEvent.ACTION_POINTER_DOWN");
+					//	Log.d("doc zooom : "+ MuPDFActivity.mCurlView.getVisibility(),"MotionEvent.ACTION_POINTER_DOWN");
 						if(MuPDFActivity.mCurlView.mState !=CurlView.k_EffectState){
 							MuPDFActivity.mCurlView.mState = CurlView.k_ZoomState;
 						}
@@ -172,17 +172,22 @@ public boolean onHitLinkActived( MotionEvent e)
 					case MotionEvent.ACTION_UP:
 					//	Log.d("MotionEvent.ACTION_UP", "MuPDFActivity.mCurlView.mState: "+MuPDFActivity.mCurlView.mState);
 					//	Log.d("curl : "+ MuPDFActivity.mCurlView.getVisibility()," doc: "+ getVisibility());
-						//MuPDFActivity.mCurlView.onTouchZoomUp(event);
+						
 						float dx = mPointDown.x - event.getX();
 						float dy = mPointDown.y - event.getY();
 						float delta1 = FloatMath.sqrt(dx * dx + dy * dy); /// check delta for double tap
 					
-						if(delta1 >= k_delta && MuPDFActivity.mCurlView.mState == CurlView.k_EffectState)
+						if(delta1 >= k_delta && MuPDFActivity.mCurlView.mState == CurlView.k_EffectState
+											 && ( !mScaling && !mEndScale))
 						{
-							Log.i("doc MotionEvent.ACTION_UP", " scale :"+DocumentReaderView.s_Instant.mScale);
+							//Log.i("doc MotionEvent.ACTION_UP", " scale :"+DocumentReaderView.s_Instant.mScale);
 							MuPDFActivity.mCurlView.onTouchEffectUp(event);
-						MuPDFActivity.mCurlView.mState = CurlView.k_DummySate;
-						return false;
+							MuPDFActivity.mCurlView.mState = CurlView.k_DummySate;
+							return false;
+						}
+						if( mScale == 1.0f &&  MuPDFActivity.mCurlView.mState == CurlView.k_ZoomState)
+						{
+							MuPDFActivity.mCurlView.mState = CurlView.k_DummySate;
 						}
 						//Log.d("doc1: " + getVisibility(), "curl: " + MuPDFActivity.mCurlView.getVisibility());
 					break;
@@ -190,7 +195,7 @@ public boolean onHitLinkActived( MotionEvent e)
 					//	Log("MotionEvent.ACTION_POINTER_UP");
 						//MuPDFActivity.mCurlView.onTouchZoomUp(event);
 						MuPDFActivity.mCurlView.mState = CurlView.k_DummySate;
-						if( isJustScale )//reset pointer down
+						//if( isJustScale )//reset pointer down
 						{
 							mPointDown.set(0, 0);
 						}
@@ -206,7 +211,8 @@ public boolean onHitLinkActived( MotionEvent e)
 							float dx1 = mPointDown.x - event.getX();
 							float dy1 = mPointDown.y - event.getY();
 							float delta = FloatMath.sqrt(dx1 * dx1 + dy1 * dy1);
-							if(delta >= k_delta && !isJustScale){
+						//	Log.d(MuPDFActivity.mCurlView.mState+";MotionEvent.ACTION_MOVE:"+ delta, "mScaling: "+ mScaling+ "; mEndScale:"+mEndScale);
+							if(delta >= k_delta && !mScaling && !mEndScale){
 								
 								onShowEffect( event);
 								MuPDFActivity.mCurlView.onTouch(s_Instant, event); ///effect show better
@@ -224,6 +230,7 @@ public boolean onHitLinkActived( MotionEvent e)
 			else
 			{
 				setVisibility(VISIBLE);
+				MuPDFActivity.mCurlView.mState = CurlView.k_ZoomState;
 				//Log.i(TAG, "invisibleEffectWhenZooming: ");
 				invisibleEffectWhenZooming();
 			}

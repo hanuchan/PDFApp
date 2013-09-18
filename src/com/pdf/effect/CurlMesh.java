@@ -30,8 +30,6 @@ import android.opengl.GLUtils;
 
 /**
  * Class implementing actual curl/page rendering.
- * 
- * @author harism
  */
 public class CurlMesh {
 
@@ -602,9 +600,6 @@ public class CurlMesh {
 	 */
 	public synchronized void onDrawFrame(GL10 gl) {
 		// First allocate texture if there is not one yet.
-		//gl.glTranslatef(CurlView.s_Dx, CurlView.s_Dy, 0);
-		//gl.glScalef(CurlView.s_Scale, CurlView.s_Scale, 1);
-		
 		if (DRAW_TEXTURE && mTextureIds == null) {
 			// Generate texture.
 			mTextureIds = new int[2];

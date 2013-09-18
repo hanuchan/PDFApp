@@ -150,7 +150,7 @@ public abstract class PageView extends ViewGroup {
 	private       boolean   mIsBlank;
 	private       boolean   mUsingHardwareAcceleration;
 	private       boolean   mHighlightLinks;
-public static boolean isDrawingNewPage = false;
+
 	private       ProgressBar mBusyIndicator;
 	private final Handler   mHandler = new Handler();
 	private FrameLayout mLinksView;
@@ -318,7 +318,6 @@ public static boolean isDrawingNewPage = false;
 			protected void onPreExecute() {
 				mEntire.setImageBitmap(null);
 				mEntireBmh.setBm(null);
-				isDrawingNewPage = true;
 				if(!MuPDFActivity.useEffectPage ||( MuPDFActivity.useEffectPage && !MuPDFActivity.flagSetBackgroundTransparent)  )
 				{
 					if (mBusyIndicator == null) {
@@ -333,7 +332,6 @@ public static boolean isDrawingNewPage = false;
 								{
 									mBusyIndicator.setVisibility(VISIBLE);
 								}
-								isDrawingNewPage = true;
 							
 							}
 						}, PROGRESS_DIALOG_DELAY);

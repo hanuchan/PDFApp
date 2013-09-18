@@ -4,6 +4,7 @@ import java.util.LinkedList;
 import java.util.NoSuchElementException;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Build;
@@ -54,7 +55,8 @@ public class ReaderView extends AdapterView<Adapter>
 	private final LinkedList<View>
 				  mViewCache = new LinkedList<View>();
 	private boolean           mUserInteracting;  // Whether the user is interacting
-	private boolean           mScaling;    // Whether the user is currently pinch zooming
+	public boolean           mScaling;    // Whether the user is currently pinch zooming
+	public boolean           mEndScale;    // Whether the user is currently pinch zooming
 	public float             mScale     = 1.0f;
 	private int               mXScroll;    // Scroll amounts recorded from events.
 	private int               mYScroll;    // and then accounted for in onLayout
@@ -101,6 +103,7 @@ public class ReaderView extends AdapterView<Adapter>
 			mScale = 1;
 			onMoveToChild(mChildViews.get(i), i);
 			mResetLayout = true;
+			Log.i("setDisplayedViewIndex", "index:"+i);
 			requestLayout();
 		}
 	}
@@ -175,7 +178,7 @@ public class ReaderView extends AdapterView<Adapter>
 			float velocityY) {
 		if (mScrollDisabled)
 			return true;
-		if( MuPDFActivity.useEffectPage && mScale == 1.0f)
+		if( MuPDFActivity.useEffectPage )
 			return true;
 		View v = mChildViews.get(mCurrent);
 		if (v != null) {
@@ -238,10 +241,10 @@ public class ReaderView extends AdapterView<Adapter>
 	
 	@Override
 	public boolean onDoubleTap(MotionEvent e) {
-		
+		MuPDFPageView pageView = (MuPDFPageView) getDisplayedView();
 		if( mScale == 1.0f ) /// lock zoom when tap outside page
 		{
-			MuPDFPageView pageView = (MuPDFPageView) getDisplayedView();
+			
 			if( e.getX() < pageView.getLeft() || e.getX() > pageView.getRight())
 			{
 				return true;
@@ -253,10 +256,14 @@ public class ReaderView extends AdapterView<Adapter>
 		}
 		float previousScale = mScale;
 		mScale += (mScale == 1f) ? 2f : -2f;
+
 		if( mScale < 1f)
+		{
 			mScale = 1f;
+			mScaling = false;
+			mEndScale = true;
+		}
 		float factor = mScale/previousScale;
-		
 		View v = mChildViews.get(mCurrent);
 		if (v != null) {
 			// Work out the focus point relative to the view top left
@@ -267,7 +274,7 @@ public class ReaderView extends AdapterView<Adapter>
 			mYScroll += viewFocusY - viewFocusY * factor;
 			requestLayout();
 		}
-		
+		isJustScale = true;
 		return true;
 	}
 
@@ -293,7 +300,7 @@ public class ReaderView extends AdapterView<Adapter>
 	public boolean onSingleTapUp(MotionEvent e) {
 		return false;
 	}
-public boolean isJustScale = false;
+	public boolean isJustScale = false;
 	@Override
 	public boolean onScale(ScaleGestureDetector detector) {
 		float previousScale = mScale;
@@ -330,7 +337,7 @@ public boolean isJustScale = false;
 			float previousScale = mScale;
 			mScale = Math.min(Math.max(mScale * detector.getScaleFactor(), MIN_SCALE), MAX_SCALE);
 			float factor = mScale/previousScale;
-		Log.d("***************************************update zoom ", "start scale: "+mScale);
+	//	Log.d("***************************************update zoom ", "start scale: "+mScale);
 			View v = mChildViews.get(mCurrent);
 			if (v != null) {
 				// Work out the focus point relative to the view top left
@@ -341,16 +348,15 @@ public boolean isJustScale = false;
 				mYScroll += viewFocusY - viewFocusY * factor;
 				requestLayout();
 			}
-			//if( mScale > 1.0f)
-				MuPDFActivity.mCurlView.setVisibility(INVISIBLE);
-			//else
-			//	MuPDFActivity.mCurlView.setVisibility(VISIBLE);
+
+			MuPDFActivity.mCurlView.setVisibility(INVISIBLE);
 		}
 		
 	}
 	@Override
 	public boolean onScaleBegin(ScaleGestureDetector detector) {
 		mScaling = true;
+		mEndScale = false;
 		// Ignore any scroll amounts yet to be accounted for: the
 		// screen is not showing the effect of them, so they can
 		// only confuse the user
@@ -360,9 +366,9 @@ public boolean isJustScale = false;
 		mScrollDisabled = true;
 		return true;
 	}
-
 	public void onScaleEnd(ScaleGestureDetector detector) {
 		mScaling = false;
+		mEndScale = true;
 	}
 
 	@Override
@@ -375,11 +381,11 @@ public boolean isJustScale = false;
 			mGestureDetector.onTouchEvent(event);
 
 		if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
-			Log.d(TAG, "event.getActionMasked() == MotionEvent.ACTION_DOWN");
+			Log.d(TAG, "event.getActionMasked() == MotionEvent.ACTION_DOWN:"+event.getX());
 			mUserInteracting = true;
 		}
 		if (event.getActionMasked() == MotionEvent.ACTION_UP) {
-			Log.d(TAG, "event.getActionMasked() == MotionEvent.ACTION_UP");
+			Log.d(TAG, "event.getActionMasked() == MotionEvent.ACTION_UP: "+event.getX());
 
 			mScrollDisabled = false;
 			mUserInteracting = false;
@@ -432,16 +438,15 @@ public boolean isJustScale = false;
 
 		View cv = mChildViews.get(mCurrent);
 		Point cvOffset;
-
 		if (!mResetLayout) {
 			// Move to next or previous if current is sufficiently off center
-			if (cv != null) {
-				cvOffset = subScreenSizeOffset(cv);
-				// cv.getRight() may be out of date with the current scale
-				// so add left to the measured width for the correct position
-				if (cv.getLeft() + cv.getMeasuredWidth() + cvOffset.x + GAP/2 + mXScroll < getWidth()/2 && mCurrent + 1 < mAdapter.getCount()) {
-					if( !MuPDFActivity.useEffectPage )
-					{
+			if( !MuPDFActivity.useEffectPage )
+			{
+				if (cv != null) {
+					cvOffset = subScreenSizeOffset(cv);
+					// cv.getRight() may be out of date with the current scale
+					// so add left to the measured width for the correct position
+					if (cv.getLeft() + cv.getMeasuredWidth() + cvOffset.x + GAP/2 + mXScroll < getWidth()/2 && mCurrent + 1 < mAdapter.getCount()) {
 						postUnsettle(cv);
 						// post to invoke test for end of animation
 						// where we must set hq area for the new current view
@@ -449,25 +454,11 @@ public boolean isJustScale = false;
 	
 						mCurrent++;
 						onMoveToChild(cv, mCurrent);
+					
 					}
-					else
-					{
-						if( mScale > 1.0f)
-						{
-							postUnsettle(cv);
-							// post to invoke test for end of animation
-							// where we must set hq area for the new current view
-							post(this);
-		
-							mCurrent++;
-							onMoveToChild(cv, mCurrent);
-						}
-					}
-				}
 
-				if (cv.getLeft() - cvOffset.x - GAP/2 + mXScroll >= getWidth()/2 && mCurrent > 0) {
-				/*	if( MuPDFActivity.useEffectPage && mScale > 1.0f)
-					{
+					if (cv.getLeft() - cvOffset.x - GAP/2 + mXScroll >= getWidth()/2 && mCurrent > 0) {
+
 						postUnsettle(cv);
 						// post to invoke test for end of animation
 						// where we must set hq area for the new current view
@@ -475,35 +466,10 @@ public boolean isJustScale = false;
 	
 						mCurrent--;
 						onMoveToChild(cv, mCurrent);
-					}*/
-					if( !MuPDFActivity.useEffectPage)
-					{
-						postUnsettle(cv);
-						// post to invoke test for end of animation
-						// where we must set hq area for the new current view
-						post(this);
-	
-						mCurrent--;
-						onMoveToChild(cv, mCurrent);
-					}
-					else
-					{
-						if( mScale > 1.0f)
-						{
-							postUnsettle(cv);
-							// post to invoke test for end of animation
-							// where we must set hq area for the new current view
-							post(this);
-		
-							mCurrent--;
-							onMoveToChild(cv, mCurrent);
-						}
-						
+				
 					}
 				}
-			}
-			if(!MuPDFActivity.useEffectPage ||(MuPDFActivity.useEffectPage && mScale > 1.0f)) //lock scroll 
-			{
+			
 				// Remove not needed children and hold them for reuse
 				int numChildren = mChildViews.size();
 				int childIndices[] = new int[numChildren];
@@ -578,10 +544,23 @@ public boolean isJustScale = false;
 			cvTop    += corr.y;
 			cvBottom += corr.y;
 		}
-
-		cv.layout(cvLeft, cvTop, cvRight, cvBottom);
-		if(!MuPDFActivity.useEffectPage ||(MuPDFActivity.useEffectPage && mScale > 1.0f)) //lock scroll 
+		//Log.d("cvLeft:"+cvLeft+";cvRight:"+cvRight+";cvTop:"+cvTop+";cvBottom:"+cvBottom,mScale+ " ;mScaling:"+mScaling +"; end scale: "+mEndScale);
+		if(MuPDFActivity.useEffectPage && mEndScale && mScale == 1.0f)
 		{
+			int w = (cvRight - cvLeft);
+		//	int h = (cvBottom - cvTop);
+			cvLeft = (MuPDFActivity.PHONE_WIDTH - w)/2;
+			cvRight = cvLeft + w;
+			mEndScale = false;
+		//	Log.d("cvLeft:"+cvLeft+";cvRight:"+cvRight+";cvTop:"+cvTop+";cvBottom:"+cvBottom," after end");
+		}
+		
+		cv.layout(cvLeft, cvTop, cvRight, cvBottom);
+		
+		
+		if(!MuPDFActivity.useEffectPage )
+		{
+			
 			if (mCurrent > 0) {
 				View lv = getOrCreateChild(mCurrent - 1);
 				Point leftOffset = subScreenSizeOffset(lv);
@@ -602,6 +581,112 @@ public boolean isJustScale = false;
 						(cvBottom + cvTop + rv.getMeasuredHeight())/2);
 			}
 		}
+	/*	
+		else
+		{
+			if( mScale > 1.0f )
+			{
+				setBackgroundColor(Color.BLACK);
+				if (mCurrent > 0) {
+					View lv = getOrCreateChild(mCurrent - 1);
+					Point leftOffset = subScreenSizeOffset(lv);
+					int gap = leftOffset.x + GAP + cvOffset.x;
+					lv.layout(cvLeft - lv.getMeasuredWidth() - gap,
+							(cvBottom + cvTop - lv.getMeasuredHeight())/2,
+							cvLeft - gap,
+							(cvBottom + cvTop + lv.getMeasuredHeight())/2);
+				}
+		
+				if (mCurrent + 1 < mAdapter.getCount()) {
+					View rv = getOrCreateChild(mCurrent + 1);
+					Point rightOffset = subScreenSizeOffset(rv);
+					int gap = cvOffset.x + GAP + rightOffset.x;
+					rv.layout(cvRight + gap,
+							(cvBottom + cvTop - rv.getMeasuredHeight())/2,
+							cvRight + rv.getMeasuredWidth() + gap,
+							(cvBottom + cvTop + rv.getMeasuredHeight())/2);
+				}
+			}
+			else
+			{
+				if (mCurrent + 1 < mAdapter.getCount()) 
+				{
+					
+					if( rightRect == null)
+					{
+						View rv = getOrCreateChild(mCurrent + 1);
+						rightRect = new Rect(rv.getLeft(), rv.getTop(), rv.getRight(), rv.getBottom());
+						//Log.i("set rect right","l: "+ rv.getLeft()+"; t: "+rv.getTop()+"; r: "+rv.getRight()+";b: "+rv.getBottom());
+					}
+				}
+				if (mCurrent > 0) 
+				{
+					
+					if( leftRect == null)
+					{
+						View lv = getOrCreateChild(mCurrent - 1);
+						leftRect = new Rect(lv.getLeft(), lv.getTop(), lv.getRight(), lv.getBottom());
+						//Log.i("set rect left","l: "+ lv.getLeft()+"; t: "+lv.getTop()+"; r: "+lv.getRight()+";b: "+lv.getBottom());
+					}
+				}
+				if( mScaling)
+				{
+					if (mCurrent > 0) {
+						View lv = getOrCreateChild(mCurrent - 1);
+						Point leftOffset = subScreenSizeOffset(lv);
+						int gap = leftOffset.x + GAP + cvOffset.x;
+						lv.layout(cvLeft - lv.getMeasuredWidth() - gap,
+								(cvBottom + cvTop - lv.getMeasuredHeight())/2,
+								cvLeft - gap,
+								(cvBottom + cvTop + lv.getMeasuredHeight())/2);
+					}
+			
+					if (mCurrent + 1 < mAdapter.getCount()) {
+						View rv = getOrCreateChild(mCurrent + 1);
+						Point rightOffset = subScreenSizeOffset(rv);
+						int gap = cvOffset.x + GAP + rightOffset.x;
+						rv.layout(cvRight + gap,
+								(cvBottom + cvTop - rv.getMeasuredHeight())/2,
+								cvRight + rv.getMeasuredWidth() + gap,
+								(cvBottom + cvTop + rv.getMeasuredHeight())/2);
+					}
+					/// fix bug black screen when show effect after zoom
+					if( MuPDFActivity.useEffectPage && MuPDFActivity.mCurlView!= null )
+					{
+						setBackgroundColor(Color.BLACK);
+						MuPDFActivity.mCurlView.setVisibility(VISIBLE);
+						MuPDFActivity.mCurlView.requestRender();
+					}
+				}
+				if( endScale ) //reset left, right view
+				{
+					if (mCurrent > 0) {
+						View lv = getOrCreateChild(mCurrent - 1);
+						//Point leftOffset = subScreenSizeOffset(lv);
+						//int gap = leftOffset.x + GAP + cvOffset.x;
+						lv.layout(leftRect.left,
+								leftRect.top,
+								leftRect.right,
+								leftRect.bottom);
+					}
+			
+					if (mCurrent + 1 < mAdapter.getCount()) {
+						View rv = getOrCreateChild(mCurrent + 1);
+						//Point rightOffset = subScreenSizeOffset(rv);
+						//int gap = cvOffset.x + GAP + rightOffset.x;
+						rv.layout(rightRect.left,
+								rightRect.top,
+								rightRect.right,
+								rightRect.bottom);
+					}
+					leftRect = rightRect = null; // reset rect after zoom
+					endScale = false;
+					setBackgroundColor(Color.TRANSPARENT);
+				}
+				
+			}
+		}
+		*/
 		invalidate();
 	}
 
@@ -749,7 +834,5 @@ public boolean isJustScale = false;
 		}
 	}
 	
-	public int getCurrentPage() {
-		return mCurrent;
-	}
+
 }
